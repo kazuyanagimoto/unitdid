@@ -4,16 +4,18 @@
 \alias{est_indcp}
 \title{Title}
 \usage{
-est_indcp(data, yname, bname, first_stage, treatment, weights = NULL)
+est_indcp(data, yname, iname, tname, bname, treatment, weights = NULL)
 }
 \arguments{
 \item{data}{The dataframe containing all the variables}
 
 \item{yname}{Outcome variable}
 
-\item{bname}{Birth year variable}
+\item{iname}{Individual identifier}
 
-\item{first_stage}{Fixed effects and other covariates to residualize in the first stage}
+\item{tname}{Time variable}
+
+\item{bname}{Birth year variable}
 
 \item{treatment}{Indicator variable for the treatment}
 
@@ -27,6 +29,7 @@ Title
 }
 \examples{
 library(indcp)
-est_indcp(yname = "y", bname = "byear", treatment = "is_treated",
-         first_stage = ~ 0 | id + year, data = base_indcp)
+est_indcp(yname = "y", iname = "id", tname = "year", bname = "byear",
+          treatment = "is_treated", data = base_indcp)
+
 }

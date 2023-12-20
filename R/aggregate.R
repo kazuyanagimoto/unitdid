@@ -1,26 +1,41 @@
-agg_indcp <- function(data,
-                      ytildename,
-                      iname,
-                      tname,
-                      bname,
-                      aname,
-                      kname,
-                      t_min,
-                      t_max,
-                      a_min,
-                      a_max,
-                      k_min,
-                      k_max) {
+#' Aggregate individual-level CP to One CP
+#'
+#' @param data The dataframe containing the individual-level CP (as `ytildename`)
+#' @param ytildename Individual-level CP estimated by `est_indcp`
+#' @param iname Individual identifier
+#' @param tname Time variable
+#' @param bname Birth year variable
+#' @param aname Age at treatment variable
+#' @param kname Relative time to treatment
+#' @param a_min Minimum age at treatment for aggregation
+#' @param a_max Maximum age at treatment for aggregation
+#' @param k_min Minimum relative time to treatment for aggregation
+#' @param k_max Maximum relative time to treatment for aggregation
+#'
+#' @return A dataframe with the aggregated CP
+#' @export
+#'
+agg_one <- function(data,
+                    ytildename,
+                    iname,
+                    tname,
+                    bname,
+                    aname,
+                    kname,
+                    a_min = 25,
+                    a_max = 34,
+                    k_min = 0,
+                    k_max = 5) {
 
   result <- agg_cage(data, ytildename, iname, tname, bname, aname, kname,
-                     t_min, t_max, a_min, a_max, k_min, k_max)
+                     a_min, a_max, k_min, k_max)
 
   result_list <- lapply(
     split(result, result$rel_time),
     function(df) {
       n <- sum(df$n)
-      tau <- weighted.mean(df$tau, df$n)
-      sd <- sqrt(weighted.mean(df$sd^2, df$n))
+      tau <- stats::weighted.mean(df$tau, df$n)
+      sd <- sqrt(stats::weighted.mean(df$sd^2, df$n))
       return(data.frame(n = n, tau = tau, sd = sd, rel_time = df$rel_time[1]))
     }
   )
@@ -29,19 +44,60 @@ agg_indcp <- function(data,
   return(result_df)
 }
 
+#' Aggregate individual-level CP to Age-Grouped CP
+#'
+#' @param data The dataframe containing the individual-level CP (as `ytildename`)
+#' @param ytildename Individual-level CP estimated by `est_indcp`
+#' @param iname Individual identifier
+#' @param tname Time variable
+#' @param bname Birth year variable
+#' @param aname Age at treatment variable
+#' @param kname Relative time variable to treatment
+#' @param a_min Minimum age at treatment for aggregation
+#' @param a_max Maximum age at treatment for aggregation
+#' @param k_min Minimum relative time to treatment for aggregation
+#' @param k_max Maximum relative time to treatment for aggregation
+#'
+#' @return A dataframe with the aggregated CP
+#' @export
+#'
 agg_cage <- function(data, ytildename, iname, tname, bname, aname, kname,
-                     t_min, t_max, a_min, a_max, k_min, k_max) {
+                     a_min, a_max, k_min, k_max) {
 
-  byears <- unique(data[[bname]])
+  t_min <- data[[tname]] |> min()
+  t_max <- data[[tname]] |> max()
+  b_min <- data[[bname]] |> min()
+  b_max <- data[[bname]] |> max()
+  a_min <- max(a_min, t_min - b_max - k_min + 1)
+  a_max <- min(a_max, t_max - b_min - k_max)
 
-  result <- lapply(byears, function(b) {
+  result <- lapply(b_min:b_max, function(b) {
     agg_cage_byear(data, ytildename, iname, tname, bname, aname, kname, b,
                    t_min, t_max, a_min, a_max, k_min, k_max)
   })
 
   result <- do.call(rbind, result)
 
-  return(result)
+  # Aggregate by Age at Treatment
+  result_list <- lapply(
+    split(result, interaction(result$rel_time, result$cage)),
+    function(df) {
+      n <- sum(df$n)
+      tau <- stats::weighted.mean(df$tau, df$n)
+      sd <- sqrt(stats::weighted.mean(df$sd^2, df$n))
+      return(data.frame(n = n, tau = tau, sd = sd, rel_time = df$rel_time[1]))
+    }
+  )
+
+  result_df <- do.call(rbind, result_list)
+
+  split_names <- strsplit(row.names(result_df), "\\.")
+  result_df$rel_time <- as.integer(sapply(split_names, "[", 1))
+  result_df$cage <- as.integer(sapply(split_names, "[", 2))
+
+  row.names(result_df) <- NULL
+
+  return(result_df)
 }
 
 agg_cage_byear <- function(data, ytildename, iname, tname, bname, aname, kname,
@@ -81,16 +137,16 @@ agg_cage_byear_ak <- function(data,
                         data[[tname]] == b + a + k, ][[ytildename]] |> mean()
   var_ytilde <- data[
     data[[aname]] == a & data[[tname]] == b + a + k, ytildename
-  ][[ytildename]] |> var()
+  ][[ytildename]] |> stats::var()
 
   epsilon_right <- data[data[[aname]] > a + k & data[[tname]] < b + a + k, ] |>
-    stats::aggregate(eval(as.formula(paste0(ytildename, " ~ ", iname))),
+    stats::aggregate(eval(stats::as.formula(paste0(ytildename, " ~ ", iname))),
                      data = _, FUN = mean)
   epsilon_right <- epsilon_right[[ytildename]]
 
   var_epsilon <- (data[data[[aname]] > a + k & data[[tname]] == b + a + k,
                   ][[ytildename]] - epsilon_right) |>
-    var()
+    stats::var()
 
   result <- data.frame(byear = b, cage = a, rel_time = k,
                        tau = mean_ytilde,
