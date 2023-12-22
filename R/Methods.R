@@ -9,7 +9,7 @@
 #'
 summary.indcp <- function(object, agg = "full", compute_var = FALSE) {
   if (compute_var) {
-
+    aggregate_var(object, agg = agg)
   } else {
     aggregate_mean(object, agg = agg)
   }
