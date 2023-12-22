@@ -1,20 +1,8 @@
-#' Aggregate individual-level CP to One CP
-#'
-#' @param data The dataframe containing the individual-level CP (as `ytildename`)
-#' @param ytildename Individual-level CP estimated by `est_indcp`
-#' @param iname Individual identifier
-#' @param tname Time variable
-#' @param bname Birth year variable
-#' @param aname Age at treatment variable
-#' @param kname Relative time to treatment
-#' @param a_min Minimum age at treatment for aggregation
-#' @param a_max Maximum age at treatment for aggregation
-#' @param k_min Minimum relative time to treatment for aggregation
-#' @param k_max Maximum relative time to treatment for aggregation
-#'
-#' @return A dataframe with the aggregated CP
-#' @export
-#'
+aggregate_var <- function(object, agg = "full", k_max = 5) {
+  
+}
+
+
 agg_one <- function(data,
                     ytildename,
                     iname,
@@ -44,23 +32,6 @@ agg_one <- function(data,
   return(result_df)
 }
 
-#' Aggregate individual-level CP to Age-Grouped CP
-#'
-#' @param data The dataframe containing the individual-level CP (as `ytildename`)
-#' @param ytildename Individual-level CP estimated by `est_indcp`
-#' @param iname Individual identifier
-#' @param tname Time variable
-#' @param bname Birth year variable
-#' @param aname Age at treatment variable
-#' @param kname Relative time variable to treatment
-#' @param a_min Minimum age at treatment for aggregation
-#' @param a_max Maximum age at treatment for aggregation
-#' @param k_min Minimum relative time to treatment for aggregation
-#' @param k_max Maximum relative time to treatment for aggregation
-#'
-#' @return A dataframe with the aggregated CP
-#' @export
-#'
 agg_cage <- function(data, ytildename, iname, tname, bname, aname, kname,
                      a_min, a_max, k_min, k_max) {
 

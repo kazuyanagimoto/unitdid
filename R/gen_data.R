@@ -61,8 +61,7 @@ gen_data <- function() {
 
   df_raw <- df_full |>
     dplyr::filter(cyear <= cyear_end) |>
-    dplyr::select(id, year, byear, cage, rel_time, y) |>
-    dplyr::mutate(is_treated = rel_time >= 0)
+    dplyr::select(id, year, byear, cage, rel_time, y)
 
   return(df_raw)
 }

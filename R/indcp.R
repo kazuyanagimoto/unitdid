@@ -5,57 +5,80 @@
 #' @param iname Individual identifier
 #' @param tname Time variable
 #' @param bname Birth year variable
-#' @param treatment Indicator variable for the treatment
-#' @param weights Optional. Variable name for regression weights
+#' @param kname Relative time to treatment variable
+#' @param aname Optional. Age at treatment variable. If not provided, it will be computed as t - b - k and added to the dataframe as `cage`.
+#' @param k_min Relative time to treatment at which treatment starts. Default is 0.
 #'
 #' @return dataframe with the residualized outcome variable
 #' @export
 #'
-#' @examples
-#' library(indcp)
-#' est_indcp(yname = "y", iname = "id", tname = "year", bname = "byear",
-#'           treatment = "is_treated", data = base_indcp)
-#'
-est_indcp <- function(data,
-                      yname,
-                      iname,
-                      tname,
-                      bname,
-                      treatment,
-                      weights = NULL) {
+indcp <- function(data,
+                  yname,
+                  iname,
+                  tname,
+                  bname,
+                  kname,
+                  aname = NULL,
+                  k_min = 0) {
 
   byears <- unique(data[[bname]])
 
-  result <- lapply(byears, function(b) {
-    est_indcp_byear(data, yname, iname, tname, bname, treatment, weights, b)
+  list_indcp <- lapply(byears, function(b) {
+    indcp_byear(data, yname, iname, tname, bname, kname, k_min, b)
   })
-  result <- do.call(rbind, result)
+  df_indcp <- do.call(rbind, list_indcp)
 
-  return(result)
+  # Return
+  t_min <- data[[tname]] |> min()
+  t_max <- data[[tname]] |> max()
+  b_min <- data[[bname]] |> min()
+  b_max <- data[[bname]] |> max()
+  
+  if (is.null(aname)) {
+    df_indcp$cage <- df_indcp[[tname]] - df_indcp[[bname]] - df_indcp[[kname]]
+    aname <- "cage"
+  }
+
+  a_min <- data[[aname]] |> min()
+  a_max <- data[[aname]] |> max()
+
+  info <- list(yname = yname,
+               iname = iname,
+               tname = tname,
+               bname = bname,
+               kname = kname,
+               aname = aname,
+               t_min = t_min,
+               t_max = t_max,
+               b_min = b_min,
+               b_max = b_max,
+               k_min = k_min,
+               a_min = a_min,
+               a_max = a_max,
+               ytildename = paste0(yname, "_tilde"))
+  res <- list(df_indcp = df_indcp, info = info)
+
+  class(res) <- "indcp"
+
+  return(res)
 }
 
-est_indcp_byear <- function(data,
-                            yname,
-                            iname,
-                            tname,
-                            bname,
-                            treatment,
-                            weights,
-                            byear) {
+indcp_byear <- function(data,
+                        yname,
+                        iname,
+                        tname,
+                        bname,
+                        kname,
+                        k_min,
+                        byear) {
 
   data <- data[data[[bname]] == byear, ]
 
-  not_yet_treated <- data[data[[treatment]] == 0, ]
-  if (is.null(weights)) {
-    weights_vector <- NULL
-  } else {
-    weights_vector <- not_yet_treated[[weights]]
-  }
+  not_yet_treated <- data[data[[kname]] < k_min, ]
 
   first_stage <- fixest::feols(
     stats::as.formula(paste0(yname, "~ 0 |", iname, " + ", tname)),
     data = not_yet_treated,
-    weights = weights_vector,
     combine.quick = FALSE,
     warn = FALSE,
     notes = FALSE)
