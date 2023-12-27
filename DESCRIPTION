@@ -1,20 +1,21 @@
-Package: indcp
 Type: Package
+Package: indcp
 Title: Individual-level Child Penalty Estimator
 Version: 0.0.0.9000
-Authors@R: person("Kazuharu", "Yanagimoto", role = c("aut", "cre"), email = "kazuharu.yanagimoto@gmail.com")
-Description: Estimate Individual-level Child Penalty Estimator (Arkhangelsky, Yanagimoto, and Zohar, 2024).
+Authors@R: 
+    person("Kazuharu", "Yanagimoto", , "kazuharu.yanagimoto@gmail.com", role = c("aut", "cre"))
+Description: Estimate Individual-level Child Penalty Estimator
+    (Arkhangelsky, Yanagimoto, and Zohar, 2024).
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.2.3
-Roxygen: list(markdown = TRUE)
+Depends: 
+    R (>= 2.10)
+Imports:
+    fixest,
+    stats
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Imports: 
-    dplyr,
-    fixest,
-    stats
-Depends: 
-    R (>= 2.10)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3

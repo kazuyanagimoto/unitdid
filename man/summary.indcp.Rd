@@ -4,7 +4,7 @@
 \alias{summary.indcp}
 \title{Title}
 \usage{
-\method{summary}{indcp}(object, agg = "full", compute_var = FALSE)
+\method{summary}{indcp}(object, agg = "full", compute_var = FALSE, ...)
 }
 \arguments{
 \item{object}{\code{indcp} object}
@@ -12,6 +12,8 @@
 \item{agg}{Aggregation method. Default is \code{full}.}
 
 \item{compute_var}{Logical. If \code{TRUE}, compute variance of the estimated.}
+
+\item{...}{Additional arguments to be passed to \code{aggregate_mean} or \code{aggregate_var}.}
 }
 \value{
 dataframe with the summary statistics

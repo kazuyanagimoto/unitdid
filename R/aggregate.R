@@ -16,7 +16,7 @@ aggregate_mean <- function(object, agg = "full", k_max = 5) {
                  data[[kname]] <= k_max, ]
 
   if (agg == "full") {
-    aggregated <- aggregate(data[[ytildename]],
+    aggregated <- stats::aggregate(data[[ytildename]],
                             by = list(k = data[[kname]]),
                             FUN = function(x) c(n = length(x), tau = mean(x)))
 
@@ -24,7 +24,7 @@ aggregate_mean <- function(object, agg = "full", k_max = 5) {
                       n = aggregated$x[, 1],
                       tau = aggregated$x[, 2]))
   } else if (agg == "cage") {
-    aggregated <- aggregate(data[[ytildename]],
+    aggregated <- stats::aggregate(data[[ytildename]],
                             by = list(k = data[[kname]], cage = data[[aname]]),
                             FUN = function(x) c(n = length(x), tau = mean(x)))
 
@@ -33,7 +33,7 @@ aggregate_mean <- function(object, agg = "full", k_max = 5) {
                       n = aggregated$x[, 1],
                       tau = aggregated$x[, 2]))
   } else if (agg == "cage_byear") {
-    aggregated <- aggregate(data[[ytildename]],
+    aggregated <- stats::aggregate(data[[ytildename]],
                             by = list(k = data[[kname]],
                                       cage = data[[aname]],
                                       byear = data[[bname]]),
@@ -66,8 +66,8 @@ aggregate_var <- function(object, agg = "full", k_max = 5) {
     result_list <- split(result, result$rel_time) |>
       lapply(function(df) {
         n <- sum(df$n)
-        tau <- weighted.mean(df$tau, w = df$n)
-        sd <- sqrt(weighted.mean(df$sd^2, w = df$n))
+        tau <- stats::weighted.mean(df$tau, w = df$n)
+        sd <- sqrt(stats::weighted.mean(df$sd^2, w = df$n))
         rel_time <- df$rel_time[1]
         return(data.frame(rel_time = rel_time, n = n, tau = tau, sd = sd))
       })
@@ -83,8 +83,8 @@ aggregate_var <- function(object, agg = "full", k_max = 5) {
       lapply(function(df) {
         return(data.frame(cage = df$cage[1],
                           rel_time = df$rel_time[1],
-                          tau = weighted.mean(df$tau, w = df$n),
-                          sd = sqrt(weighted.mean(df$sd^2, w = df$n)),
+                          tau = stats::weighted.mean(df$tau, w = df$n),
+                          sd = sqrt(stats::weighted.mean(df$sd^2, w = df$n)),
                           n = sum(df$n)))
       })
 
@@ -155,7 +155,7 @@ var_ak <- function(object, b, a, k) {
                        n = n)
 
   result$sd <- ifelse(result$var < 0, 0, sqrt(result$var))
-  result <- subset(result, select = -var)
+  result$var <- NULL
 
   return(result)
 }
