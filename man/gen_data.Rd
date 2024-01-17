@@ -7,7 +7,7 @@
 gen_data(size_cohort = 1000)
 }
 \arguments{
-\item{size_cohort}{Number of individuals per birth year}
+\item{size_cohort}{n_obsumber of individuals per birth year}
 }
 \value{
 A sample dataframe with heterogenous child penalty over the age at first birth

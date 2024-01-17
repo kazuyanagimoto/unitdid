@@ -1,6 +1,6 @@
 #' Generate Sample Data
 #'
-#' @param size_cohort Number of individuals per birth year
+#' @param size_cohort n_obsumber of individuals per birth year
 #' @return A sample dataframe with heterogenous child penalty over the age at first birth
 #' @export
 #'
@@ -10,7 +10,6 @@
 #'
 gen_data <- function(size_cohort = 1000) {
 
-  # Parameter Setup
   year_start <- 1999
   year_end <- 2016
   cyear_end <- 2021
@@ -18,11 +17,11 @@ gen_data <- function(size_cohort = 1000) {
   byear_end <- 1984
   cage_start <- 15
   cage_end <- 44
-  prob_cage <- c(seq(0, 1 / 16, length.out = 16)[2:16],
-                 seq(1 / 16, 0, length.out = 16)[1:15])
+  prob_cage <- c(seq(0, 1/16, length.out = 16)[2:16],
+                 seq(1/16, 0, length.out = 16)[1:15])
 
-  n_byear <- byear_end - byear_start + 1
-  n_obs <- size_cohort * n_byear
+  n_b <- byear_end - byear_start + 1
+  n_obs <- size_cohort * n_b
   n_year <- year_end - year_start + 1
 
   mean_alpha <- 0.15
@@ -31,43 +30,37 @@ gen_data <- function(size_cohort = 1000) {
   mean_epsilon <- 0
   sd_epsilon <- 0.025
 
-  # Generation of Individual-level Data
-  df_ind <- data.frame(
+  df_ind <- tibble::tibble(
     id = 1:n_obs,
     alpha = stats::rnorm(n_obs, mean_alpha, sd_alpha),
     byear = rep(byear_start:byear_end, each = size_cohort),
-    cage = sample(cage_start:cage_end, n_obs, replace = TRUE, prob = prob_cage)
-  )
-  df_ind$cyear <- df_ind$byear + df_ind$cage
-  df_ind$sd1 <- 2.892 - 0.797 * log(df_ind$cage)
-  df_ind$sd1[df_ind$sd1 < 0.1] <- 0.1
-  df_ind$tau1 <- -1.143 + 0.313 * log(df_ind$cage)
+    cage = sample(cage_start:cage_end, n_obs,
+                  replace = TRUE, prob = prob_cage)) |>
+    dplyr::mutate(cyear = byear + cage,
+                  sd1 = 2.892 - 0.797 * log(cage),
+                  sd1 = dplyr::if_else(sd1 < 0.1, 0.1, sd1),
+                  tau1 = -1.143 + 0.313 * log(cage))
 
-  # Panel Data Creation
-  df_full <- df_ind[rep(seq_len(nrow(df_ind)), each = n_year), ]
-  df_full$year <- rep(year_start:year_end, time = n_obs)
-  df_full$lambda <- rep(lambdas, each = n_obs)
-  df_full$epsilon <- stats::rnorm(n_obs * n_year, mean_epsilon, sd_epsilon)
-  df_full$rel_time <- df_full$year - df_full$cyear
-  df_full$sd_tmp <- 0.006 + 1.051 * df_full$sd1 + 0.01 * df_full$rel_time
+  df_full <- df_ind |>
+    dplyr::slice(rep(seq_len(dplyr::n()), each = n_year)) |>
+    dplyr::mutate(
+      year = rep(year_start:year_end, time = n_obs),
+      lambda = rep(lambdas, time = n_obs),
+      epsilon = stats::rnorm(n_obs * n_year, mean_epsilon, sd_epsilon),
+      rel_time = year - cyear,
+      sd_tmp = 0.006 + 1.051 * sd1 + 0.01 * rel_time,
+      tau = dplyr::case_when(
+         rel_time < 0 ~ 0,
+         rel_time == 0 ~ tau1 / 3 + + stats::rnorm(n_obs * n_year, 0, sd1 / 3),
+         rel_time == 1 ~ tau1 + stats::rnorm(n_obs * n_year, 0, sd1),
+         rel_time > 1 ~ 0.038 + 1.444 * tau1 - 0.011 * rel_time +
+           stats::rnorm(n_obs * n_year, 0,
+                        dplyr::if_else(sd_tmp > 0, sd_tmp, 1e-9))),
+      y = alpha + lambda + tau + epsilon)
 
-  df_full$tau <- ifelse(
-    df_full$rel_time < 0, 0,
-    ifelse(df_full$rel_time == 0,
-           df_full$tau1 / 3 + stats::rnorm(n_obs * n_year, 0, df_full$sd1 / 3),
-           ifelse(df_full$rel_time == 1,
-                  df_full$tau1 + stats::rnorm(n_obs * n_year, 0, df_full$sd1),
-                  0.038 + 1.444 * df_full$tau1 - 0.011 * df_full$rel_time +
-                    stats::rnorm(n_obs * n_year, 0,
-                                 ifelse(df_full$sd_tmp > 0,
-                                        df_full$sd_tmp, 1e-9))))
-  )
-
-  df_full$y <- df_full$alpha + df_full$lambda + df_full$tau + df_full$epsilon
-
-  # Filtering and Selecting Relevant Columns
-  df_raw <- df_full[df_full$cyear <= cyear_end,
-                    c("id", "year", "byear", "cage", "rel_time", "y")]
+  df_raw <- df_full |>
+    dplyr::filter(cyear <= cyear_end) |>
+    dplyr::select("id", "year", "byear", "cage", "rel_time", "y")
 
   return(df_raw)
 }

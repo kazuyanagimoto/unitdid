@@ -9,7 +9,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  message = FALSE,
+  warning = FALSE,
+  dev = "svg"
 )
 ```
 
@@ -18,38 +21,109 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of indcp is to ...
+The `indcp` package provides a set of functions for the analysis of
+the individual-level child penalties (Arkhangelsky, Yanagimoto, and Zohar, 2024)
 
 ## Installation
 
 You can install the development version of indcp from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("kazuyanagimoto/indcp")
+# install.packages("remotes")
+remotes::install_github("kazuyanagimoto/indcp")
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example with the simulated `base_indcp` data set:
 
 ```{r example}
 library(indcp)
-## basic example code
+
+base_indcp |>
+  head()
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Individual-level child penalties are estimated by `indcp()`:
 
-```{r cars}
-summary(cars)
+```{r mdl_indcp}
+mdl_base <- base_indcp |>
+  indcp(yname = "y",
+        iname = "id",
+        tname = "year",
+        bname = "byear",
+        kname = "rel_time")
+
+# Estimated individual-level child penalties (y_tilde)
+mdl_base$df_indcp |>
+  head()
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+### Aggregation (in the Mean)
 
-You can also embed plots, for example:
+They can be aggregated to the `full`, `cage` (age at childbirth),
+and `cage_byear` (age at childbirth and birth year) levels:
 
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r agg_full}
+summary(mdl_base) # default agg = "full"
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+```{r agg_cage}
+library(dplyr)
+library(ggplot2)
+
+sum_cage <- summary(mdl_base, agg = "cage")
+
+sum_cage |>
+  filter(rel_time == 0) |>
+  mutate(rel_time = -1,
+         mean = 0) |>
+  bind_rows(sum_cage) |>
+  filter(between(cage, 25, 34)) |>
+  mutate(lbl_facet = paste0("Age ", cage)) |>
+  ggplot(aes(x = rel_time, y = mean)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = -1, linetype = "dashed") +
+  geom_hline(yintercept = 0) +
+  facet_wrap(~lbl_facet, ncol = 5) +
+  labs(x = "Time to First Childbirth", y = "Child Penalties on y") +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+### Variance of Individual-level Child Penalties
+
+The `compute_var` option of the `summary` computes the variance of
+individual-level child penalties.
+This can be computed from the (naive) variance of the individual-level child penalties
+subtracted by the estimated variance of the measurement errors.
+
+```{r var_cage}
+sum_cage <- summary(mdl_base, agg = "cage", compute_var = TRUE)
+
+sum_cage |>
+  filter(rel_time == 0) |>
+  mutate(rel_time = -1,
+         sd = 0) |>
+  bind_rows(sum_cage) |>
+  filter(between(cage, 25, 34)) |>
+  mutate(lbl_facet = paste0("Age ", cage)) |>
+  ggplot(aes(x = rel_time, y = sd)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = -1, linetype = "dashed") +
+  geom_hline(yintercept = 0) +
+  facet_wrap(~lbl_facet, ncol = 5) +
+  labs(x = "Time to First Childbirth", y = "S.D. of Child Penalties") +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+
+
+
+
+

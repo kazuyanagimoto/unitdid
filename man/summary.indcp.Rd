@@ -2,7 +2,7 @@
 % Please edit documentation in R/Methods.R
 \name{summary.indcp}
 \alias{summary.indcp}
-\title{Title}
+\title{Aggregate the mean and variance of the estimated individual-level child penalties}
 \usage{
 \method{summary}{indcp}(object, agg = "full", compute_var = FALSE, ...)
 }
@@ -16,8 +16,8 @@
 \item{...}{Additional arguments to be passed to \code{aggregate_mean} or \code{aggregate_var}.}
 }
 \value{
-dataframe with the summary statistics
+A \code{tibble} with the summary statistics
 }
 \description{
-Title
+Aggregate the mean and variance of the estimated individual-level child penalties
 }

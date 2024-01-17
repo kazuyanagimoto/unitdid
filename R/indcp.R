@@ -1,4 +1,4 @@
-#' Title
+#' A function estimates individual-level child penalties
 #'
 #' @param data The dataframe containing all the variables
 #' @param yname Outcome variable
@@ -9,7 +9,7 @@
 #' @param aname Optional. Age at treatment variable. If not provided, it will be computed as t - b - k and added to the dataframe as `cage`.
 #' @param k_min Relative time to treatment at which treatment starts. Default is 0.
 #'
-#' @return dataframe with the residualized outcome variable
+#' @return A `indcp` class object. A `tibble` with the estimated individual-level child penalties (e.g., y_tilde).
 #' @export
 #'
 indcp <- function(data,
@@ -18,29 +18,26 @@ indcp <- function(data,
                   tname,
                   bname,
                   kname,
-                  aname = NULL,
+                  aname = "cage",
                   k_min = 0) {
 
   byears <- unique(data[[bname]])
 
-  list_indcp <- lapply(byears, function(b) {
-    indcp_byear(data, yname, iname, tname, bname, kname, k_min, b)
-  })
-  df_indcp <- do.call(rbind, list_indcp)
+  df_indcp <- purrr::map(byears, ~indcp_byear(data, yname, iname,
+                                  tname, bname, kname, k_min, .x)) |>
+    purrr::list_rbind()
 
   # Return
-  t_min <- data[[tname]] |> min()
-  t_max <- data[[tname]] |> max()
-  b_min <- data[[bname]] |> min()
-  b_max <- data[[bname]] |> max()
-  
-  if (is.null(aname)) {
-    df_indcp$cage <- df_indcp[[tname]] - df_indcp[[bname]] - df_indcp[[kname]]
-    aname <- "cage"
-  }
+  t_min <- df_indcp[[tname]] |> min()
+  t_max <- df_indcp[[tname]] |> max()
+  b_min <- df_indcp[[bname]] |> min()
+  b_max <- df_indcp[[bname]] |> max()
 
-  a_min <- data[[aname]] |> min()
-  a_max <- data[[aname]] |> max()
+  df_indcp[[aname]] <- df_indcp[[tname]] -
+    df_indcp[[bname]] - df_indcp[[kname]]
+
+  a_min <- df_indcp[[aname]] |> min()
+  a_max <- df_indcp[[aname]] |> max()
 
   info <- list(yname = yname,
                iname = iname,
@@ -76,14 +73,29 @@ indcp_byear <- function(data,
 
   not_yet_treated <- data[data[[kname]] < k_min, ]
 
-  first_stage <- fixest::feols(
-    stats::as.formula(paste0(yname, "~ 0 |", iname, " + ", tname)),
-    data = not_yet_treated,
-    combine.quick = FALSE,
-    warn = FALSE,
-    notes = FALSE)
+  if (nrow(not_yet_treated) == 0) {
+    return(tibble::tibble())
+  }
 
-  data[[paste0(yname, "_hat")]] <- stats::predict(first_stage, newdata = data)
+  if (fixest:::cpp_isConstant(not_yet_treated[[yname]])) {
+
+    data[[paste0(yname, "_hat")]] <- not_yet_treated[[yname]][1]
+    data[[paste0(yname, "_tilde")]] <- data[[yname]] -
+      data[[paste0(yname, "_hat")]]
+
+  } else {
+
+    first_stage <- fixest::feols(
+      stats::as.formula(paste0(yname, "~ 0 |", iname, " + ", tname)),
+      data = not_yet_treated,
+      combine.quick = FALSE,
+      warn = FALSE,
+      notes = FALSE)
+
+    data[[paste0(yname, "_hat")]] <- stats::predict(first_stage, newdata = data)
+
+  }
+
   data[[paste0(yname, "_tilde")]] <- data[[yname]] -
     data[[paste0(yname, "_hat")]]
 

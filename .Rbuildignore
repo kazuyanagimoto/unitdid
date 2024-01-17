@@ -6,3 +6,8 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^demo$
+^vignettes\*.dta$
+^vignettes\*.rds$
+^doc$
+^Meta$

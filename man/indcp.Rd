@@ -2,9 +2,9 @@
 % Please edit documentation in R/indcp.R
 \name{indcp}
 \alias{indcp}
-\title{Title}
+\title{A function estimates individual-level child penalties}
 \usage{
-indcp(data, yname, iname, tname, bname, kname, aname = NULL, k_min = 0)
+indcp(data, yname, iname, tname, bname, kname, aname = "cage", k_min = 0)
 }
 \arguments{
 \item{data}{The dataframe containing all the variables}
@@ -24,8 +24,8 @@ indcp(data, yname, iname, tname, bname, kname, aname = NULL, k_min = 0)
 \item{k_min}{Relative time to treatment at which treatment starts. Default is 0.}
 }
 \value{
-dataframe with the residualized outcome variable
+A \code{indcp} class object. A \code{tibble} with the estimated individual-level child penalties (e.g., y_tilde).
 }
 \description{
-Title
+A function estimates individual-level child penalties
 }

@@ -4,3 +4,7 @@
 .Ruserdata
 .vscode/*
 docs
+demo/*
+inst/doc
+/doc/
+/Meta/

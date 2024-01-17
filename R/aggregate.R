@@ -11,39 +11,42 @@ aggregate_mean <- function(object, agg = "full", k_max = 5) {
 
   a_end <- a_max - k_min - 1 - k_max
 
-  data <- data[data[[aname]] <= a_end - (data[[bname]] - b_min) &
-                 data[[kname]] >= k_min &
-                 data[[kname]] <= k_max, ]
+  data <- object$df_indcp |>
+    dplyr::filter(dplyr::between(!!rlang::sym(kname), k_min, k_max),
+                  !!rlang::sym(aname) <= a_end - (!!rlang::sym(bname) - b_min))
 
   if (agg == "full") {
-    aggregated <- stats::aggregate(data[[ytildename]],
-                            by = list(k = data[[kname]]),
-                            FUN = function(x) c(n = length(x), tau = mean(x)))
 
-    return(data.frame(k = aggregated$k,
-                      n = aggregated$x[, 1],
-                      tau = aggregated$x[, 2]))
+    aggregated <- data |>
+      dplyr::summarize(n = dplyr::n(),
+                       mean = mean(!!rlang::sym(ytildename)),
+                       .by = kname) |>
+      dplyr::arrange(!!rlang::sym(kname))
+
+    return(aggregated)
+
   } else if (agg == "cage") {
-    aggregated <- stats::aggregate(data[[ytildename]],
-                            by = list(k = data[[kname]], cage = data[[aname]]),
-                            FUN = function(x) c(n = length(x), tau = mean(x)))
 
-    return(data.frame(k = aggregated$k,
-                      cage = aggregated$cage,
-                      n = aggregated$x[, 1],
-                      tau = aggregated$x[, 2]))
+    aggregated <- data |>
+      dplyr::summarize(n = dplyr::n(),
+                       mean = mean(!!rlang::sym(ytildename)),
+                       .by = c(aname, kname)) |>
+      dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
+
+    return(aggregated)
+
   } else if (agg == "cage_byear") {
-    aggregated <- stats::aggregate(data[[ytildename]],
-                            by = list(k = data[[kname]],
-                                      cage = data[[aname]],
-                                      byear = data[[bname]]),
-                            FUN = function(x) c(n = length(x), tau = mean(x)))
 
-    return(data.frame(k = aggregated$k,
-                      cage = aggregated$cage,
-                      byear = aggregated$byear,
-                      n = aggregated$x[, 1],
-                      tau = aggregated$x[, 2]))
+    aggregated <- data |>
+      dplyr::summarize(n = dplyr::n(),
+                       mean = mean(!!rlang::sym(ytildename)),
+                       .by = c(bname, aname, kname)) |>
+      dplyr::arrange(!!rlang::sym(bname),
+                     !!rlang::sym(aname),
+                     !!rlang::sym(kname))
+
+    return(aggregated)
+
   } else {
     stop("agg must be one of 'full', 'age', or 'age_byear'")
   }
@@ -55,42 +58,58 @@ aggregate_var <- function(object, agg = "full", k_max = 5) {
 
   b_min <- object$info$b_min
   b_max <- object$info$b_max
+  aname <- object$info$aname
+  kname <- object$info$kname
 
-  result <- lapply(b_min:b_max, function(b) {
-    var_b(object, b)
-  })
-  result <- do.call(rbind, result)
+  result <- purrr::map(b_min:b_max, ~var_b(object, .x)) |>
+    purrr::list_rbind() |>
+    dplyr::filter(n > 0)
 
   if (agg == "full") {
 
-    result_list <- split(result, result$rel_time) |>
-      lapply(function(df) {
-        n <- sum(df$n)
-        tau <- stats::weighted.mean(df$tau, w = df$n)
-        sd <- sqrt(stats::weighted.mean(df$sd^2, w = df$n))
-        rel_time <- df$rel_time[1]
-        return(data.frame(rel_time = rel_time, n = n, tau = tau, sd = sd))
-      })
+    sum_mean <- result |>
+      dplyr::summarize("mean" = stats::weighted.mean(!!rlang::sym("mean"),
+                                                     w = !!rlang::sym("n")),
+                       "n_mean" = sum(!!rlang::sym("n")),
+                       .by = kname) |>
+      dplyr::arrange(!!rlang::sym(kname))
 
-    result_summary <- do.call(rbind, result_list)
-    row.names(result_summary) <- NULL
+    sum_sd <- result |>
+      dplyr::filter(!is.na(!!rlang::sym("sd"))) |>
+      dplyr::summarize("sd" = sqrt(stats::weighted.mean((!!rlang::sym("sd"))^2,
+                                                        w = !!rlang::sym("n"))),
+                       "n_sd" = sum(!!rlang::sym("n")),
+                       .by = kname) |>
+      dplyr::arrange(!!rlang::sym(kname))
 
-    return(result_summary)
+
+    sum_full <- sum_mean |>
+      dplyr::left_join(sum_sd, by = kname)
+
+    return(sum_full)
 
   } else if (agg == "cage") {
 
-    result_list <- split(result, list(result$rel_time, result$cage)) |>
-      lapply(function(df) {
-        return(data.frame(cage = df$cage[1],
-                          rel_time = df$rel_time[1],
-                          tau = stats::weighted.mean(df$tau, w = df$n),
-                          sd = sqrt(stats::weighted.mean(df$sd^2, w = df$n)),
-                          n = sum(df$n)))
-      })
+    sum_mean <- result |>
+      dplyr::summarize("mean" = stats::weighted.mean(!!rlang::sym("mean"),
+                                                     w = !!rlang::sym("n")),
+                       "n_mean" = sum(!!rlang::sym("n")),
+                       .by = c(aname, kname)) |>
+      dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
 
-    result_summary <- do.call(rbind, result_list)
-    row.names(result_summary) <- NULL
-    return(result_summary)
+    sum_sd <- result |>
+      dplyr::filter(!is.na(!!rlang::sym("sd"))) |>
+      dplyr::summarize("sd" = sqrt(stats::weighted.mean((!!rlang::sym("sd"))^2,
+                                                        w = !!rlang::sym("n"))),
+                       "n_sd" = sum(!!rlang::sym("n")),
+                       .by = c(aname, kname)) |>
+      dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
+
+
+    sum_cage <- sum_mean |>
+      dplyr::left_join(sum_sd, by = c(aname, kname))
+
+    return(sum_cage)
 
   } else if (agg == "cage_byear") {
 
@@ -111,51 +130,60 @@ var_b <- function(object, b) {
   a_start <- max(a_min, t_min - b - k_min + 1)
   a_end <- min(a_max, a_max - k_min - 1 - k_max - (b - b_min))
 
-  result <- mapply(function(a, k) {
-    var_ak(object, b, a, k)
-  },
-  rep(a_start:a_end, each = k_max - k_min + 1),
-  rep(k_min:k_max, times = a_end - a_start + 1),
-  SIMPLIFY = FALSE)
+  if (a_start > a_end) {
+    return(tibble::tibble())
+  }
 
-  result <- do.call(rbind, result)
+  result <- purrr::map2(rep(a_start:a_end, each = k_max - k_min + 1),
+                        rep(k_min:k_max, times = a_end - a_start + 1),
+                        ~var_ak(object, b, .x, .y)) |>
+    purrr::list_rbind()
 
   return(result)
 }
 
 var_ak <- function(object, b, a, k) {
 
-  data <- object$df_indcp
   iname <- object$info$iname
   tname <- object$info$tname
   aname <- object$info$aname
   bname <- object$info$bname
+  kname <- object$info$kname
   ytildename <- object$info$ytildename
 
-  data <- data[data[[bname]] == b, ]
-  n <- data[data[[aname]] == a & data[[tname]] == b + a + k, ] |> nrow()
-  mean_ytilde <- data[data[[aname]] == a &
-                        data[[tname]] == b + a + k, ][[ytildename]] |> mean()
-  var_ytilde <- data[
-    data[[aname]] == a & data[[tname]] == b + a + k, ytildename
-  ][[ytildename]] |> stats::var()
+  data <- object$df_indcp |>
+    dplyr::filter(!!rlang::sym(bname) == b)
 
-  epsilon_right <- data[data[[aname]] > a + k & data[[tname]] < b + a + k, ] |>
-    stats::aggregate(eval(stats::as.formula(paste0(ytildename, " ~ ", iname))),
-                     data = _, FUN = mean)
-  epsilon_right <- epsilon_right[[ytildename]]
+  sum_ak <- data |>
+    dplyr::filter(!!rlang::sym(aname) == a, !!rlang::sym(tname) == b + a + k) |>
+    dplyr::summarize(n = dplyr::n(),
+                     mean_ytilde = mean(!!rlang::sym(ytildename)),
+                     var_ytilde = stats::var(!!rlang::sym(ytildename)))
 
-  var_epsilon <- (data[data[[aname]] > a + k & data[[tname]] == b + a + k,
-                  ][[ytildename]] - epsilon_right) |>
-    stats::var()
+  epsilon_right <- data |>
+    dplyr::filter(!!rlang::sym(aname) > a + k,
+                  !!rlang::sym(tname) < b + a + k) |>
+    dplyr::summarize(epsilon_right = mean(!!rlang::sym(ytildename)),
+                     .by = !!rlang::sym(iname))
 
-  result <- data.frame(byear = b, cage = a, rel_time = k,
-                       tau = mean_ytilde,
-                       var = var_ytilde - var_epsilon,
-                       n = n)
+  sum_epsilon <- data |>
+    dplyr::filter(!!rlang::sym(aname) > a + k,
+                  !!rlang::sym(tname) == b + a + k) |>
+    dplyr::left_join(epsilon_right, by = c(iname)) |>
+    dplyr::mutate(epsilon_hat = !!rlang::sym(ytildename) - epsilon_right) |>
+    dplyr::filter(!is.na(epsilon_hat)) |>
+    dplyr::summarize(n = n(),
+                     var_epsilon = stats::var(epsilon_hat))
 
-  result$sd <- ifelse(result$var < 0, 0, sqrt(result$var))
-  result$var <- NULL
+  result <- tibble::tibble(!!bname := b,
+                           !!aname := a,
+                           !!kname := k,
+                           "var" = sum_ak$var_ytilde - sum_epsilon$var_epsilon,
+                           "mean" = sum_ak$mean_ytilde,
+                           "n" = sum_ak$n) |>
+    dplyr::mutate("var" = dplyr::if_else(var > 0, var, 0),
+                  "sd" = sqrt(var)) |>
+    dplyr::select(-c("var"))
 
   return(result)
 }
