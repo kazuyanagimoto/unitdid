@@ -62,7 +62,10 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
+```
 
+
+```r
 save(cp_psid, file = "cp_psid.rds")
 ```
 
@@ -71,7 +74,10 @@ save(cp_psid, file = "cp_psid.rds")
 
 ```r
 load("cp_psid.rds")
+```
 
+
+```r
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",

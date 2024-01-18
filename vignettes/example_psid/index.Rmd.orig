@@ -69,15 +69,19 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
+```
 
+```{r, eval=FALSE}
 save(cp_psid, file = "cp_psid.rds")
 ```
 
 ## Analysis of Child Penalties on Participation
 
-```{r mean_cage, fig.align='center', fig.width=6}
+```{r, eval=FALSE}
 load("cp_psid.rds")
+```
 
+```{r mean_cage, fig.align='center', fig.width=6}
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",
