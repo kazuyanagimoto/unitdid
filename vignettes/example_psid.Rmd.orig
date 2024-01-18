@@ -1,7 +1,7 @@
 ---
 title: "An Example with PSID"
 author: Kazuharu Yanagimoto
-date: 'January 18, 2024'
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{An Example with PSID}
@@ -9,10 +9,18 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  dev = "svg",
+  fig.ext = "svg"
+)
+```
 
-
-
-```r
+```{r setup}
 library(indcp)
 library(tidyverse)
 ```
@@ -38,8 +46,7 @@ To replicate this article, you need to run
     - `us_01.dta`-`us_03.dta` will be produced
 1. Run the following code to create a dataset for the child penalties
 
-
-```r
+```{r cleaning, eval=FALSE}
 cpf_us01 <- haven::read_dta("us_01.dta")
 cpf_us03 <- haven::read_dta("us_03_CPF.dta")
 
@@ -68,8 +75,7 @@ save(cp_psid, file = "cp_psid.rds")
 
 ## Analysis of Child Penalties on Participation
 
-
-```r
+```{r mean_cage, fig.align='center', fig.width=6}
 load("cp_psid.rds")
 
 mdl_particip_m <- cp_psid |>
@@ -118,10 +124,7 @@ sum_particip |>
         legend.position = c(0.1, 0.8))
 ```
 
-<img src="figure/mean_cage-1.svg" alt="plot of chunk mean_cage" style="display: block; margin: auto;" />
-
-
-```r
+```{r sd_cage, fig.align='center', fig.width=6}
 sum_particip_m <- summary(mdl_particip_m, agg = "cage", compute_var = TRUE) |>
   mutate(gender = "Men")
 sum_particip_f <- summary(mdl_particip_f, agg = "cage", compute_var = TRUE) |>
@@ -131,8 +134,7 @@ sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
   filter(between(cage, 22, 30))
 ```
 
-
-```r
+```{r sd_cage_plot, fig.align='center', fig.width=6}
 sum_particip |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1, mean = 0, sd = 0) |>
@@ -154,5 +156,3 @@ sum_particip |>
         panel.grid.major.x = element_blank(),
         legend.position = c(0.95, 0.2))
 ```
-
-<img src="figure/sd_cage_plot-1.svg" alt="plot of chunk sd_cage_plot" style="display: block; margin: auto;" />
