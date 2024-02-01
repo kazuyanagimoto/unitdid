@@ -4,20 +4,27 @@
 \alias{summary.indcp}
 \title{Aggregate the mean and variance of the estimated individual-level child penalties}
 \usage{
-\method{summary}{indcp}(object, agg = "full", compute_var = FALSE, ...)
+\method{summary}{indcp}(object, agg = "full")
 }
 \arguments{
 \item{object}{\code{indcp} object}
 
-\item{agg}{Aggregation method. Default is \code{full}.}
-
-\item{compute_var}{Logical. If \code{TRUE}, compute variance of the estimated.}
-
-\item{...}{Additional arguments to be passed to \code{aggregate_mean} or \code{aggregate_var}.}
+\item{agg}{Aggregation method. One of \code{c("full", "cage", "cage_byear")} and the default is \code{full}. The \code{cage} means the age at the treatment. The \code{cage_byear} means the age at the treatment and the birth year.}
 }
 \value{
 A \code{tibble} with the summary statistics
 }
 \description{
 Aggregate the mean and variance of the estimated individual-level child penalties
+}
+\examples{
+library(indcp)
+mdl_base <- base_indcp |>
+  indcp(yname = "y",
+        iname = "id",
+        tname = "year",
+        bname = "byear",
+        kname = "rel_time")
+summary(mdl_base, agg = "cage")
+
 }

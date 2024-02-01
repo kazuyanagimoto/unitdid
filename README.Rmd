@@ -39,6 +39,8 @@ This is a basic example with the simulated `base_indcp` data set:
 
 ```{r example}
 library(indcp)
+library(dplyr)
+library(ggplot2)
 
 base_indcp |>
   head()
@@ -48,6 +50,7 @@ Individual-level child penalties are estimated by `indcp()`:
 
 ```{r mdl_indcp}
 mdl_base <- base_indcp |>
+  filter(cage >= 25) |>
   indcp(yname = "y",
         iname = "id",
         tname = "year",
@@ -59,7 +62,7 @@ mdl_base$df_indcp |>
   head()
 ```
 
-### Aggregation (in the Mean)
+### Aggregation of Individual-level Child Penalties
 
 They can be aggregated to the `full`, `cage` (age at childbirth),
 and `cage_byear` (age at childbirth and birth year) levels:
@@ -69,19 +72,16 @@ summary(mdl_base) # default agg = "full"
 ```
 
 ```{r agg_cage}
-library(dplyr)
-library(ggplot2)
-
 sum_cage <- summary(mdl_base, agg = "cage")
 
 sum_cage |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         mean = 0) |>
+         mean_y_tilde = 0) |>
   bind_rows(sum_cage) |>
   filter(between(cage, 25, 34)) |>
   mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = mean)) +
+  ggplot(aes(x = rel_time, y = mean_y_tilde)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -95,22 +95,34 @@ sum_cage |>
 
 ### Variance of Individual-level Child Penalties
 
-The `compute_var` option of the `summary` computes the variance of
-individual-level child penalties.
-This can be computed from the (naive) variance of the individual-level child penalties
-subtracted by the estimated variance of the measurement errors.
+Since the individual-level child penalties are estimated with measurement errors,
+the variance of the `y_tilde` is not equal to the variance of
+the individual-level child penalties.
+
+The `compute_var_me` option of the `indcp` estimates the variance of
+the measurement errors and the variance of the individual-level child penalties
+by subtracting the variance of the measurement errors from the variance of `y_tilde`
 
 ```{r var_cage}
-sum_cage <- summary(mdl_base, agg = "cage", compute_var = TRUE)
+mdl_base_var <- base_indcp |>
+  filter(cage >= 25) |>
+  indcp(yname = "y",
+        iname = "id",
+        tname = "year",
+        bname = "byear",
+        kname = "rel_time",
+        compute_var_me = TRUE)
 
-sum_cage |>
+sum_cage_var <- summary(mdl_base_var, agg = "cage")
+summary(mdl_base_var, agg = "cage_byear") |> View()
+sum_cage_var |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         sd = 0) |>
-  bind_rows(sum_cage) |>
+         sd_y_tilde_estimated = 0) |>
+  bind_rows(sum_cage_var) |>
   filter(between(cage, 25, 34)) |>
   mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = sd)) +
+  ggplot(aes(x = rel_time, y = sd_y_tilde_estimated)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -121,9 +133,4 @@ sum_cage |>
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank())
 ```
-
-
-
-
-
 

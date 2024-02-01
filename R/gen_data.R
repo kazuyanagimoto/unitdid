@@ -8,17 +8,17 @@
 #' set.seed(1234)
 #' base_indcp <- gen_data()
 #'
-gen_data <- function(size_cohort = 1000) {
+gen_data <- function(size_cohort = 500) {
 
   year_start <- 1999
-  year_end <- 2016
-  cyear_end <- 2021
-  byear_start <- 1965
-  byear_end <- 1984
+  year_end <- 2021
   cage_start <- 15
   cage_end <- 44
+
   prob_cage <- c(seq(0, 1/16, length.out = 16)[2:16],
                  seq(1/16, 0, length.out = 16)[1:15])
+  byear_start <- year_start - cage_end
+  byear_end <- year_end - cage_start
 
   n_b <- byear_end - byear_start + 1
   n_obs <- size_cohort * n_b
@@ -59,7 +59,7 @@ gen_data <- function(size_cohort = 1000) {
       y = alpha + lambda + tau + epsilon)
 
   df_raw <- df_full |>
-    dplyr::filter(cyear <= cyear_end) |>
+    dplyr::filter(dplyr::between(year, year_start, year_end)) |>
     dplyr::select("id", "year", "byear", "cage", "rel_time", "y")
 
   return(df_raw)
