@@ -1,7 +1,7 @@
 ---
 title: "An Example with PSID"
 author: Kazuharu Yanagimoto
-date: 'January 18, 2024'
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{An Example with PSID}
@@ -9,12 +9,23 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  dev = "svg",
+  fig.ext = "svg"
+)
+```
 
-
-
-```r
+```{r setup}
 library(indcp)
-library(tidyverse)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(haven)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
@@ -38,10 +49,9 @@ To replicate this article, you need to run
     - `us_01.dta`-`us_03.dta` will be produced
 1. Run the following code to create a dataset for the child penalties
 
-
-```r
-cpf_us01 <- haven::read_dta("us_01.dta")
-cpf_us03 <- haven::read_dta("us_03_CPF.dta")
+```{r cleaning, eval=FALSE}
+cpf_us01 <- read_dta(here("vignettes/example_psid/us_01.dta"))
+cpf_us03 <- read_dta(here("vignettes/example_psid/us_03_CPF.dta"))
 
 ever_birth <- cpf_us01 |>
   select(pid, cyear = ER32024) |>
@@ -64,27 +74,31 @@ cp_psid <- cpf_us03 |>
   filter(!is.na(earn))
 ```
 
-
-```r
-save(cp_psid, file = "cp_psid.rds")
+```{r, eval=FALSE}
+save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 ```
 
 ## Analysis of Child Penalties on Participation
 
+```{r, eval=FALSE}
+load(here("vignettes/example_psid/cp_psid.rds"))
 
-```r
-load("cp_psid.rds")
+cp_psid <- cp_psid |>
+  mutate(cage = cyear - byear) |>
+  filter(cyear >= 1968,
+         year <= 1997, # The last year of the annual data
+         between(cage, 22, 40)) # The Age range of the first childbirth
 ```
 
-
-```r
+```{r mean_cage, fig.align='center', fig.width=6}
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",
         iname = "id",
         tname = "year",
         bname = "byear",
-        kname = "rel_time")
+        kname = "rel_time",
+        compute_var_me = TRUE)
 
 mdl_particip_f <- cp_psid |>
   filter(gender == "Women") |>
@@ -92,7 +106,8 @@ mdl_particip_f <- cp_psid |>
         iname = "id",
         tname = "year",
         bname = "byear",
-        kname = "rel_time")
+        kname = "rel_time",
+        compute_var_me = TRUE)
 
 sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
   mutate(gender = "Men")
@@ -102,12 +117,15 @@ sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
 sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
   filter(between(cage, 22, 30))
 
-sum_particip |>
+df_plot <- sum_particip |>
   filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean = 0) |>
+  mutate(rel_time = -1, mean_particip_tilde = 0,
+         sd_particip_tilde_estimated = 0) |>
   bind_rows(sum_particip) |>
-  mutate(lbl_facet = str_c("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = mean, color = gender, shape = gender)) +
+  mutate(lbl_facet = paste0("Age ", cage))
+
+df_plot |>
+  ggplot(aes(x = rel_time, y = mean_particip_tilde, color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -116,7 +134,7 @@ sum_particip |>
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
        y = NULL,
-       title = "Child Penalties on Participation",
+       title = "Child Penalties on Laborforce Participation",
        color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
@@ -124,27 +142,11 @@ sum_particip |>
         legend.position = c(0.1, 0.8))
 ```
 
-<img src="figure/mean_cage-1.svg" alt="plot of chunk mean_cage" style="display: block; margin: auto;" />
+```{r sd_cage, fig.align='center', fig.width=6}
 
-
-```r
-sum_particip_m <- summary(mdl_particip_m, agg = "cage", compute_var = TRUE) |>
-  mutate(gender = "Men")
-sum_particip_f <- summary(mdl_particip_f, agg = "cage", compute_var = TRUE) |>
-  mutate(gender = "Women")
-
-sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
-  filter(between(cage, 22, 30))
-```
-
-
-```r
-sum_particip |>
-  filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean = 0, sd = 0) |>
-  bind_rows(sum_particip) |>
-  mutate(lbl_facet = str_c("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = sd, color = gender, shape = gender)) +
+df_plot |>
+  ggplot(aes(x = rel_time, y = sd_particip_tilde_estimated,
+             color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -160,5 +162,3 @@ sum_particip |>
         panel.grid.major.x = element_blank(),
         legend.position = c(0.95, 0.2))
 ```
-
-<img src="figure/sd_cage_plot-1.svg" alt="plot of chunk sd_cage_plot" style="display: block; margin: auto;" />

@@ -114,7 +114,7 @@ mdl_base_var <- base_indcp |>
         compute_var_me = TRUE)
 
 sum_cage_var <- summary(mdl_base_var, agg = "cage")
-summary(mdl_base_var, agg = "cage_byear") |> View()
+
 sum_cage_var |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,

@@ -18,8 +18,7 @@ Imports:
     fixest,
     purrr,
     rlang,
-    stats,
-    tibble
+    stats
 Suggests: 
     ggplot2,
     knitr,

@@ -4,12 +4,12 @@
 \alias{summary.indcp}
 \title{Aggregate the mean and variance of the estimated individual-level child penalties}
 \usage{
-\method{summary}{indcp}(object, agg = "full")
+\method{summary}{indcp}(object, ...)
 }
 \arguments{
 \item{object}{\code{indcp} object}
 
-\item{agg}{Aggregation method. One of \code{c("full", "cage", "cage_byear")} and the default is \code{full}. The \code{cage} means the age at the treatment. The \code{cage_byear} means the age at the treatment and the birth year.}
+\item{...}{\code{aggregate_indcp} arguments}
 }
 \value{
 A \code{tibble} with the summary statistics

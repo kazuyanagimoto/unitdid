@@ -11,20 +11,22 @@ compute_projection <- function(object) {
   object$aggregated <- object$df_indcp |>
     dplyr::filter(dplyr::between(!!rlang::sym(kname), k_min, k_max)) |>
     dplyr::summarize(!!paste0("mean_", ytildename) := mean(!!rlang::sym(ytildename)),
-                      !!paste0("sd_", ytildename) := sd(!!rlang::sym(ytildename)),
+                      !!paste0("sd_", ytildename) := stats::sd(!!rlang::sym(ytildename)),
                       n = dplyr::n(),
                       .by = c(bname, aname, kname)) |>
+    dplyr::mutate(!!paste0("sd_", ytildename) := dplyr::if_else(!!rlang::sym("n") == 1, 0,
+                                                                !!rlang::sym(paste0("sd_", ytildename)) * (!!rlang::sym("n") - 1) / !!rlang::sym("n"))) |>
     dplyr::arrange(!!rlang::sym(bname),
                    !!rlang::sym(aname),
                    !!rlang::sym(kname))
-  
+ 
   # Choose only the cohorts with full horizon
   if (object$info$only_full_horizon) {
     object$aggregated <- object$aggregated |>
       dplyr::summarize(n_k = dplyr::n(),
                        .by = c(bname, aname)) |>
-      dplyr::filter(n_k == k_max - k_min + 1) |>
-      dplyr::select(-n_k) |>
+      dplyr::filter(!!rlang::sym("n_k") == k_max - k_min + 1) |>
+      dplyr::select(-dplyr::any_of("n_k")) |>
       dplyr::left_join(object$aggregated, by = c(bname, aname))
 
       object$info$b_min <- object$aggregated[[bname]] |> min()
@@ -65,7 +67,7 @@ var_epsilon_b <- function(object, b, k_max) {
   a_end <- min(a_max, t_max - k_min - 1 - k_max - (b - b_min))
 
   if (a_start > a_end) {
-    return(tibble::tibble())
+    return(dplyr::tibble())
   }
 
   result <- purrr::map2(rep(a_start:a_end, each = k_max - k_min + 1),
@@ -100,11 +102,14 @@ var_epsilon_ak <- function(object, b, a, k) {
     dplyr::left_join(epsilon_right, by = c(iname)) |>
     dplyr::mutate(epsilon_hat = !!rlang::sym(ytildename) - epsilon_right) |>
     dplyr::filter(!is.na(!!rlang::sym("epsilon_hat"))) |>
-    dplyr::summarize(var_epsilon = stats::var(!!rlang::sym("epsilon_hat")))
+    dplyr::summarize(sd_epsilon = stats::sd(!!rlang::sym("epsilon_hat")),
+                     n = dplyr::n()) |>
+    dplyr::mutate("sd_epsilon" = dplyr::if_else(!!rlang::sym("n") == 1, 0,
+                                                !!rlang::sym("sd_epsilon")) * (!!rlang::sym("n") - 1) / !!rlang::sym("n"))
 
-  result <- tibble::tibble(!!bname := b,
-                           !!aname := a,
-                           !!kname := k,
-                           "sd_epsilon" = sqrt(sum_epsilon$var_epsilon))
-  return (result)
+  result <- dplyr::tibble(!!bname := b,
+                          !!aname := a,
+                          !!kname := k,
+                          "sd_epsilon" = sum_epsilon$sd_epsilon)
+  return(result)
 }

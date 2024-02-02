@@ -10,9 +10,14 @@ prep_data <- function(data,
                       compute_var_me,
                       only_full_horizon) {
 
+  # Sample Selection
+  data[[aname]] <- data[[tname]] - data[[bname]] - data[[kname]]
+  t_min <- data[[tname]] |> min()
+  data <- data[(data[[bname]] + data[[aname]] + k_min) > t_min, ]
   b_min <- data[[bname]] |> min()
   b_max <- data[[bname]] |> max()
 
+  # Imputation
   df_indcp <- purrr::map(b_min:b_max,
                          ~prep_data_b(data, yname, iname,
                                       tname, bname, kname, aname, k_min, .x)) |>
@@ -23,9 +28,6 @@ prep_data <- function(data,
   t_max <- df_indcp[[tname]] |> max()
   b_min <- df_indcp[[bname]] |> min()
   b_max <- df_indcp[[bname]] |> max()
-
-  df_indcp[[aname]] <- df_indcp[[tname]] -
-    df_indcp[[bname]] - df_indcp[[kname]]
 
   a_min <- df_indcp[[aname]] |> min()
   a_max <- df_indcp[[aname]] |> max()
@@ -64,14 +66,12 @@ prep_data_b <- function(data,
                         k_min,
                         b) {
 
+  # Sample Selection
   data <- data[data[[bname]] == b, ]
-  t_min <- data[[tname]] |> min()
-  data <- data[data[[bname]] + data[[aname]] + k_min > t_min, ]
-
   not_yet_treated <- data[data[[kname]] < k_min, ]
 
   if (nrow(not_yet_treated) == 0 || fixest:::cpp_isConstant(not_yet_treated[[yname]])) {
-    return(tibble::tibble())
+    return(dplyr::tibble())
   }
 
   first_stage <- fixest::feols(

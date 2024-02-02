@@ -30,7 +30,7 @@ gen_data <- function(size_cohort = 500) {
   mean_epsilon <- 0
   sd_epsilon <- 0.025
 
-  df_ind <- tibble::tibble(
+  df_ind <- dplyr::tibble(
     id = 1:n_obs,
     alpha = stats::rnorm(n_obs, mean_alpha, sd_alpha),
     byear = rep(byear_start:byear_end, each = size_cohort),
