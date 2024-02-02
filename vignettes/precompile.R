@@ -26,8 +26,3 @@ for (file_orig in files_orig) {
     message("Image files were successfully transferred to vignettes directory")
   }
 }
-
-
-
-
-

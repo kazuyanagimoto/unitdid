@@ -19,7 +19,7 @@ compute_projection <- function(object) {
     dplyr::arrange(!!rlang::sym(bname),
                    !!rlang::sym(aname),
                    !!rlang::sym(kname))
- 
+
   # Choose only the cohorts with full horizon
   if (object$info$only_full_horizon) {
     object$aggregated <- object$aggregated |>
