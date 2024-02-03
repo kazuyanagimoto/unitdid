@@ -21,6 +21,8 @@ Imports:
     stats
 Suggests: 
     ggplot2,
+    haven,
+    here,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
