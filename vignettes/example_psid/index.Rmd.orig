@@ -22,7 +22,10 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(indcp)
-library(tidyverse)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(haven)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
@@ -47,8 +50,8 @@ To replicate this article, you need to run
 1. Run the following code to create a dataset for the child penalties
 
 ```{r cleaning, eval=FALSE}
-cpf_us01 <- haven::read_dta("us_01.dta")
-cpf_us03 <- haven::read_dta("us_03_CPF.dta")
+cpf_us01 <- read_dta(here("vignettes/example_psid/us_01.dta"))
+cpf_us03 <- read_dta(here("vignettes/example_psid/us_03_CPF.dta"))
 
 ever_birth <- cpf_us01 |>
   select(pid, cyear = ER32024) |>
@@ -69,26 +72,31 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
-```
 
-```{r, eval=FALSE}
-save(cp_psid, file = "cp_psid.rds")
+save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 ```
 
 ## Analysis of Child Penalties on Participation
 
-```{r, eval=FALSE}
-load("cp_psid.rds")
+```{r sample_select}
+load(here("vignettes/example_psid/cp_psid.rds"))
+
+cp_psid <- cp_psid |>
+  mutate(cage = cyear - byear) |>
+  filter(cyear >= 1968,
+         year <= 1997, # The last year of the annual data
+         between(cage, 22, 40)) # The Age range of the first childbirth
 ```
 
-```{r mean_cage, fig.align='center', fig.width=6}
+```{r indcp_cage}
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",
         iname = "id",
         tname = "year",
         bname = "byear",
-        kname = "rel_time")
+        kname = "rel_time",
+        compute_var_me = TRUE)
 
 mdl_particip_f <- cp_psid |>
   filter(gender == "Women") |>
@@ -96,8 +104,13 @@ mdl_particip_f <- cp_psid |>
         iname = "id",
         tname = "year",
         bname = "byear",
-        kname = "rel_time")
+        kname = "rel_time",
+        compute_var_me = TRUE)
+```
 
+### Mean of Child Penalties on Participation
+
+```{r mean_cage, fig.align='center', fig.height=4.33, fig.width=7}
 sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
   mutate(gender = "Men")
 sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
@@ -106,12 +119,16 @@ sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
 sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
   filter(between(cage, 22, 30))
 
-sum_particip |>
+df_plot <- sum_particip |>
   filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean = 0) |>
+  mutate(rel_time = -1, mean_particip_tilde = 0,
+         sd_particip_tilde_estimated = 0) |>
   bind_rows(sum_particip) |>
-  mutate(lbl_facet = str_c("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = mean, color = gender, shape = gender)) +
+  mutate(lbl_facet = paste0("Age ", cage))
+
+df_plot |>
+  ggplot(aes(x = rel_time, y = mean_particip_tilde,
+             color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -120,31 +137,19 @@ sum_particip |>
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
        y = NULL,
-       title = "Child Penalties on Participation",
        color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.1, 0.8))
+        legend.position = "bottom")
 ```
 
-```{r sd_cage, fig.align='center', fig.width=6}
-sum_particip_m <- summary(mdl_particip_m, agg = "cage", compute_var = TRUE) |>
-  mutate(gender = "Men")
-sum_particip_f <- summary(mdl_particip_f, agg = "cage", compute_var = TRUE) |>
-  mutate(gender = "Women")
+### Standard Deviation of Child Penalties on Participation
 
-sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
-  filter(between(cage, 22, 30))
-```
-
-```{r sd_cage_plot, fig.align='center', fig.width=6}
-sum_particip |>
-  filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean = 0, sd = 0) |>
-  bind_rows(sum_particip) |>
-  mutate(lbl_facet = str_c("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = sd, color = gender, shape = gender)) +
+```{r sd_cage, fig.align='center', fig.height=4.33, fig.width=7}
+df_plot |>
+  ggplot(aes(x = rel_time, y = sd_particip_tilde_estimated,
+             color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -152,11 +157,9 @@ sum_particip |>
   facet_wrap(~lbl_facet) +
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
-       y = NULL,
-       title = "S.D. of Child Penalties on Participation",
-       color = NULL, shape = NULL) +
+       y = NULL, color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.95, 0.2))
+        legend.position = "bottom")
 ```

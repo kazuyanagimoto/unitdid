@@ -10,3 +10,4 @@
 ^vignettes$
 ^doc$
 ^Meta$
+^\.vscode$

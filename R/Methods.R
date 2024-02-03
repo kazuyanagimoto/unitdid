@@ -1,9 +1,7 @@
 #' Aggregate the mean and variance of the estimated individual-level child penalties
 #'
 #' @param object `indcp` object
-#' @param agg Aggregation method. Default is `full`.
-#' @param compute_var Logical. If `TRUE`, compute variance of the estimated.
-#' @param ... Additional arguments to be passed to `aggregate_mean` or `aggregate_var`.
+#' @param ... `aggregate_indcp` arguments
 #'
 #' @return A `tibble` with the summary statistics
 #' @examples
@@ -14,14 +12,11 @@
 #'         tname = "year",
 #'         bname = "byear",
 #'         kname = "rel_time")
-#' summary(mdl_base, agg = "cage)
+#' summary(mdl_base, agg = "cage")
 #'
 #' @export
 #'
-summary.indcp <- function(object, agg = "full", compute_var = FALSE, ...) {
-  if (compute_var) {
-    aggregate_var(object, agg = agg)
-  } else {
-    aggregate_mean(object, agg = agg)
-  }
+summary.indcp <- function(object, ...) {
+
+  aggregate_indcp(object, ...)
 }
