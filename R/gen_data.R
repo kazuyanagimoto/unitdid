@@ -37,9 +37,9 @@ gen_data <- function(size_cohort = 500) {
     cage = sample(cage_start:cage_end, n_obs,
                   replace = TRUE, prob = prob_cage)) |>
     dplyr::mutate(cyear = byear + cage,
-                  sd1 = 2.892 - 0.797 * log(cage),
+                  sd1 = 3 - 0.75 * log(cage),
                   sd1 = dplyr::if_else(sd1 < 0.1, 0.1, sd1),
-                  tau1 = -1.143 + 0.313 * log(cage))
+                  tau1 = -1.2 + 0.3 * log(cage))
 
   df_full <- df_ind |>
     dplyr::slice(rep(seq_len(dplyr::n()), each = n_year)) |>
@@ -48,12 +48,12 @@ gen_data <- function(size_cohort = 500) {
       lambda = rep(lambdas, time = n_obs),
       epsilon = stats::rnorm(n_obs * n_year, mean_epsilon, sd_epsilon),
       rel_time = year - cyear,
-      sd_tmp = 0.006 + 1.051 * sd1 + 0.01 * rel_time,
+      sd_tmp = 0.01 + sd1 + 0.02 * rel_time,
       tau = dplyr::case_when(
          rel_time < 0 ~ 0,
-         rel_time == 0 ~ tau1 / 3 + + stats::rnorm(n_obs * n_year, 0, sd1 / 3),
+         rel_time == 0 ~ tau1 / 3 + stats::rnorm(n_obs * n_year, 0, sd1 / 3),
          rel_time == 1 ~ tau1 + stats::rnorm(n_obs * n_year, 0, sd1),
-         rel_time > 1 ~ 0.038 + 1.444 * tau1 - 0.011 * rel_time +
+         rel_time > 1 ~ 0.05 + 1.5 * tau1 - 0.02 * rel_time +
            stats::rnorm(n_obs * n_year, 0,
                         dplyr::if_else(sd_tmp > 0, sd_tmp, 1e-9))),
       y = alpha + lambda + tau + epsilon)

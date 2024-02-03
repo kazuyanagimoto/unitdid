@@ -78,7 +78,7 @@ save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 
 ## Analysis of Child Penalties on Participation
 
-```{r, eval=FALSE}
+```{r sample_select}
 load(here("vignettes/example_psid/cp_psid.rds"))
 
 cp_psid <- cp_psid |>
@@ -108,7 +108,9 @@ mdl_particip_f <- cp_psid |>
         compute_var_me = TRUE)
 ```
 
-```{r mean_cage, fig.align='center', fig.width=6}
+### Mean of Child Penalties on Participation
+
+```{r mean_cage, fig.align='center', fig.height=4.33, fig.width=7}
 sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
   mutate(gender = "Men")
 sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
@@ -135,15 +137,16 @@ df_plot |>
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
        y = NULL,
-       title = "Child Penalties on Laborforce Participation",
        color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.1, 0.8))
+        legend.position = "bottom")
 ```
 
-```{r sd_cage, fig.align='center', fig.width=6}
+### Standard Deviation of Child Penalties on Participation
+
+```{r sd_cage, fig.align='center', fig.height=4.33, fig.width=7}
 df_plot |>
   ggplot(aes(x = rel_time, y = sd_particip_tilde_estimated,
              color = gender, shape = gender)) +
@@ -154,11 +157,9 @@ df_plot |>
   facet_wrap(~lbl_facet) +
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
-       y = NULL,
-       title = "S.D. of Child Penalties on Participation",
-       color = NULL, shape = NULL) +
+       y = NULL, color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.95, 0.2))
+        legend.position = "bottom")
 ```

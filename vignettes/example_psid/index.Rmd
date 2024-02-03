@@ -1,7 +1,7 @@
 ---
 title: "An Example with PSID"
 author: Kazuharu Yanagimoto
-date: 'February 02, 2024'
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{An Example with PSID}
@@ -9,10 +9,18 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  dev = "svg",
+  fig.ext = "svg"
+)
+```
 
-
-
-```r
+```{r setup}
 library(indcp)
 library(here)
 library(dplyr)
@@ -41,8 +49,7 @@ To replicate this article, you need to run
     - `us_01.dta`-`us_03.dta` will be produced
 1. Run the following code to create a dataset for the child penalties
 
-
-```r
+```{r cleaning, eval=FALSE}
 cpf_us01 <- read_dta(here("vignettes/example_psid/us_01.dta"))
 cpf_us03 <- read_dta(here("vignettes/example_psid/us_03_CPF.dta"))
 
@@ -71,8 +78,7 @@ save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 
 ## Analysis of Child Penalties on Participation
 
-
-```r
+```{r sample_select}
 load(here("vignettes/example_psid/cp_psid.rds"))
 
 cp_psid <- cp_psid |>
@@ -82,8 +88,7 @@ cp_psid <- cp_psid |>
          between(cage, 22, 40)) # The Age range of the first childbirth
 ```
 
-
-```r
+```{r indcp_cage}
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",
@@ -103,8 +108,9 @@ mdl_particip_f <- cp_psid |>
         compute_var_me = TRUE)
 ```
 
+### Mean of Child Penalties on Participation
 
-```r
+```{r mean_cage, fig.align='center', fig.height=4.33, fig.width=7}
 sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
   mutate(gender = "Men")
 sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
@@ -131,21 +137,16 @@ df_plot |>
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
        y = NULL,
-       title = "Child Penalties on Laborforce Participation",
        color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.1, 0.8))
+        legend.position = "bottom")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="figure/mean_cage-1.svg" alt="plot of chunk mean_cage"  />
-<p class="caption">plot of chunk mean_cage</p>
-</div>
+### Standard Deviation of Child Penalties on Participation
 
-
-```r
+```{r sd_cage, fig.align='center', fig.height=4.33, fig.width=7}
 df_plot |>
   ggplot(aes(x = rel_time, y = sd_particip_tilde_estimated,
              color = gender, shape = gender)) +
@@ -156,16 +157,9 @@ df_plot |>
   facet_wrap(~lbl_facet) +
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   labs(x = "Time to First Childbirth",
-       y = NULL,
-       title = "S.D. of Child Penalties on Participation",
-       color = NULL, shape = NULL) +
+       y = NULL, color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = c(0.95, 0.2))
+        legend.position = "bottom")
 ```
-
-<div class="figure" style="text-align: center">
-<img src="figure/sd_cage-1.svg" alt="plot of chunk sd_cage"  />
-<p class="caption">plot of chunk sd_cage</p>
-</div>

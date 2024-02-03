@@ -14,8 +14,6 @@ compute_projection <- function(object) {
                       !!paste0("sd_", ytildename) := stats::sd(!!rlang::sym(ytildename)),
                       n = dplyr::n(),
                       .by = c(bname, aname, kname)) |>
-    dplyr::mutate(!!paste0("sd_", ytildename) := dplyr::if_else(!!rlang::sym("n") == 1, 0,
-                                                                !!rlang::sym(paste0("sd_", ytildename)) * (!!rlang::sym("n") - 1) / !!rlang::sym("n"))) |>
     dplyr::arrange(!!rlang::sym(bname),
                    !!rlang::sym(aname),
                    !!rlang::sym(kname))
@@ -103,9 +101,7 @@ var_epsilon_ak <- function(object, b, a, k) {
     dplyr::mutate(epsilon_hat = !!rlang::sym(ytildename) - epsilon_right) |>
     dplyr::filter(!is.na(!!rlang::sym("epsilon_hat"))) |>
     dplyr::summarize(sd_epsilon = stats::sd(!!rlang::sym("epsilon_hat")),
-                     n = dplyr::n()) |>
-    dplyr::mutate("sd_epsilon" = dplyr::if_else(!!rlang::sym("n") == 1, 0,
-                                                !!rlang::sym("sd_epsilon")) * (!!rlang::sym("n") - 1) / !!rlang::sym("n"))
+                     n = dplyr::n())
 
   result <- dplyr::tibble(!!bname := b,
                           !!aname := a,

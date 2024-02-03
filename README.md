@@ -26,22 +26,27 @@ This is a basic example with the simulated `base_indcp` data set:
 
 ``` r
 library(indcp)
+library(dplyr)
+library(ggplot2)
 
 base_indcp |>
   head()
-#>   id year byear cage rel_time          y
-#> 1  1 1999  1965   27        7 -0.5382475
-#> 2  1 2000  1965   27        8 -0.0809379
-#> 3  1 2001  1965   27        9 -0.2175191
-#> 4  1 2002  1965   27       10 -0.5613995
-#> 5  1 2003  1965   27       11 -0.4271110
-#> 6  1 2004  1965   27       12 -0.4449481
+#> # A tibble: 6 × 6
+#>      id  year byear  cage rel_time       y
+#>   <int> <int> <int> <int>    <int>   <dbl>
+#> 1     1  1999  1955    23       21  0.0426
+#> 2     1  2000  1955    23       22 -0.868 
+#> 3     1  2001  1955    23       23 -0.708 
+#> 4     1  2002  1955    23       24  0.808 
+#> 5     1  2003  1955    23       25 -1.43  
+#> 6     1  2004  1955    23       26  0.766
 ```
 
 Individual-level child penalties are estimated by `indcp()`:
 
 ``` r
 mdl_base <- base_indcp |>
+  filter(cage >= 25) |>
   indcp(yname = "y",
         iname = "id",
         tname = "year",
@@ -51,47 +56,46 @@ mdl_base <- base_indcp |>
 # Estimated individual-level child penalties (y_tilde)
 mdl_base$df_indcp |>
   head()
-#>   id year byear cage rel_time           y       y_hat      y_tilde
-#> 1  3 1999  1965   41       -7  0.01747722  0.02659942 -0.009122202
-#> 2  3 2000  1965   41       -6  0.16430370  0.17539746 -0.011093763
-#> 3  3 2001  1965   41       -5  0.26554958  0.25778103  0.007768548
-#> 4  3 2002  1965   41       -4 -0.08445270 -0.08140325 -0.003049458
-#> 5  3 2003  1965   41       -3  0.20472857  0.19825995  0.006468619
-#> 6  3 2004  1965   41       -2  0.21283326  0.20219996  0.010633293
+#> # A tibble: 6 × 8
+#>      id  year byear  cage rel_time       y   y_hat  y_tilde
+#>   <int> <int> <int> <int>    <int>   <dbl>   <dbl>    <dbl>
+#> 1  1015  1999  1957    44       -2  0.0326  0.0247  0.00788
+#> 2  1015  2000  1957    44       -1  0.147   0.155  -0.00788
+#> 3  1062  1999  1957    44       -2  0.0514  0.0723 -0.0209 
+#> 4  1062  2000  1957    44       -1  0.224   0.203   0.0209 
+#> 5  1078  1999  1957    43       -1 -0.0253 -0.0253  0      
+#> 6  1078  2000  1957    43        0  0.0935  0.105  -0.0119
 ```
 
-### Aggregation (in the Mean)
+### Aggregation of Individual-level Child Penalties
 
 They can be aggregated to the `full`, `cage` (age at childbirth), and
 `cage_byear` (age at childbirth and birth year) levels:
 
 ``` r
 summary(mdl_base) # default agg = "full"
-#> # A tibble: 6 × 3
-#>   rel_time     n    mean
-#>      <int> <int>   <dbl>
-#> 1        0  3319 -0.0318
-#> 2        1  3319 -0.102 
-#> 3        2  3319 -0.134 
-#> 4        3  3319 -0.137 
-#> 5        4  3319 -0.153 
-#> 6        5  3319 -0.174
+#> # A tibble: 6 × 4
+#>   rel_time mean_y_tilde sd_y_tilde     n
+#>      <int>        <dbl>      <dbl> <int>
+#> 1        0      -0.0569      0.151  5732
+#> 2        1      -0.165       0.451  5732
+#> 3        2      -0.247       0.480  5732
+#> 4        3      -0.268       0.511  5732
+#> 5        4      -0.291       0.524  5732
+#> 6        5      -0.308       0.550  5732
 ```
 
 ``` r
-library(dplyr)
-library(ggplot2)
-
 sum_cage <- summary(mdl_base, agg = "cage")
 
 sum_cage |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         mean = 0) |>
+         mean_y_tilde = 0) |>
   bind_rows(sum_cage) |>
   filter(between(cage, 25, 34)) |>
   mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = mean)) +
+  ggplot(aes(x = rel_time, y = mean_y_tilde)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -107,22 +111,35 @@ sum_cage |>
 
 ### Variance of Individual-level Child Penalties
 
-The `compute_var` option of the `summary` computes the variance of
-individual-level child penalties. This can be computed from the (naive)
-variance of the individual-level child penalties subtracted by the
-estimated variance of the measurement errors.
+Since the individual-level child penalties are estimated with
+measurement errors, the variance of the `y_tilde` is not equal to the
+variance of the individual-level child penalties.
+
+The `compute_var_me` option of the `indcp` estimates the variance of the
+measurement errors and the variance of the individual-level child
+penalties by subtracting the variance of the measurement errors from the
+variance of `y_tilde`
 
 ``` r
-sum_cage <- summary(mdl_base, agg = "cage", compute_var = TRUE)
+mdl_base_var <- base_indcp |>
+  filter(cage >= 25) |>
+  indcp(yname = "y",
+        iname = "id",
+        tname = "year",
+        bname = "byear",
+        kname = "rel_time",
+        compute_var_me = TRUE)
 
-sum_cage |>
+sum_cage_var <- summary(mdl_base_var, agg = "cage")
+
+sum_cage_var |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         sd = 0) |>
-  bind_rows(sum_cage) |>
+         sd_y_tilde_estimated = 0) |>
+  bind_rows(sum_cage_var) |>
   filter(between(cage, 25, 34)) |>
   mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = sd)) +
+  ggplot(aes(x = rel_time, y = sd_y_tilde_estimated)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
