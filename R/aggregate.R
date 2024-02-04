@@ -33,8 +33,6 @@ aggregate_indcp <- function(object, agg = "full", na.rm = TRUE) {
                        .by = c(aname, kname)) |>
       dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
 
-    return(result)
-
   } else if (agg == "cage_byear") {
 
     result <- object$aggregated
