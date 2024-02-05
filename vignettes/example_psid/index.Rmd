@@ -1,12 +1,16 @@
 ---
 title: "An Example with PSID"
 author: Kazuharu Yanagimoto
-date: 'February 04, 2024'
+date: 'February 06, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{An Example with PSID}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
+bibliography: references.bib
 ---
 
 
@@ -15,31 +19,32 @@ vignette: >
 ```r
 library(indcp)
 library(here)
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(haven)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
 
-The PSID data is a longitudinal household survey of the United States
-and one of the longest and most famous panel surveys in the world.
-The study began in 1968 with a nationally representative sample of over 18,000
-individuals living in 5,000 families.
-The data is available [here](https://psidonline.isr.umich.edu) for the registered users.
+The PSID data is a longitudinal household survey of the United States and one of
+the longest and most famous panel surveys in the world. The study began in 1968
+with a nationally representative sample of over 18,000 individuals living in
+5,000 families. The data is available [here](https://psidonline.isr.umich.edu)
+for the registered users.
 
-To avoid the convoluted cleaning tasks,
-I mostly use the cleaning codes provided by the [Comparative Panel File (CPF)](https://www.cpfdata.com).
-Their cleaning [codes](https://www.cpfdata.com) are developed
-for creating a harmonized panel data of seven countries
-(Australia, Germany, the UK, South Korea, Russia, Switzerland, and the US).
+To avoid the convoluted cleaning tasks, I mostly use the cleaning codes provided
+by the [Comparative Panel File (CPF)](https://www.cpfdata.com). Their cleaning
+[codes](https://www.cpfdata.com) are developed for creating a harmonized panel
+data of seven countries (Australia, Germany, the UK, South Korea, Russia,
+Switzerland, and the US).
 
 To replicate this article, you need to run
 
-1. Run the code of the CPF only for the PSID
-    - In step 4 (Add vars constant across all waves) of the `CPF-Code/03_PSID/us_01_3_GEt_vars.do`, add `ER32024` (birth year of the first child)
-    - `us_01.dta`-`us_03.dta` will be produced
-1. Run the following code to create a dataset for the child penalties
+1.  Run the code of the CPF only for the PSID
+    -   In step 4 (Add vars constant across all waves) of the
+        `CPF-Code/03_PSID/us_01_3_GEt_vars.do`, add `ER32024` (birth year of the
+        first child)
+    -   `us_01.dta`-`us_03.dta` will be produced
+2.  Run the following code to create a dataset for the child penalties
 
 
 ```r
@@ -58,10 +63,12 @@ cp_psid <- cpf_us03 |>
          byear = yborn,
          gender = female,
          earn = incjobs_yg,
-         hours = whweek) |>
+         hours = whweek,
+         years_edu = eduy) |>
   mutate(gender = if_else(gender == 0, "Men", "Women"),
          particip = if_else(hours > 0, 1, 0),
-         wage = if_else(particip == 1, earn / hours, 0)) |>
+         wage = if_else(particip == 1, earn / hours, 0),
+         years_edu = if_else(years_edu < 0, NA_integer_, years_edu)) |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
@@ -80,10 +87,7 @@ cp_psid <- cp_psid |>
   filter(cyear >= 1968,
          year <= 1997, # The last year of the annual data
          between(cage, 22, 40)) # The Age range of the first childbirth
-```
 
-
-```r
 mdl_particip_m <- cp_psid |>
   filter(gender == "Men") |>
   indcp(yname = "particip",
@@ -101,12 +105,17 @@ mdl_particip_f <- cp_psid |>
         bname = "byear",
         kname = "rel_time",
         compute_var_me = TRUE)
+
+save(mdl_particip_m, mdl_particip_f,
+     file = here("vignettes/example_psid/mdl_particip.RData"))
 ```
 
 ### Mean of Child Penalties on Participation
 
 
 ```r
+load(here("vignettes/example_psid/mdl_particip.RData"))
+
 sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
   mutate(gender = "Men")
 sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
@@ -170,3 +179,101 @@ df_plot |>
 <img src="figure/sd_cage-1.svg" alt="plot of chunk sd_cage"  />
 <p class="caption">plot of chunk sd_cage</p>
 </div>
+
+## Scatter Plot with Covariates
+
+To highlight the flexibility of the individual child penalties, let's plot the
+relationship between the years of education and the child penalties.
+
+
+```r
+library(patchwork)
+library(binsreg)
+
+df_indcp <- bind_rows(mdl_particip_m$df_indcp |> mutate(gender = "Men"),
+                      mdl_particip_f$df_ind |> mutate(gender = "Women"))
+```
+
+
+```r
+plot_scatter <- function(gender) {
+  clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
+
+  df_indcp |>
+    filter(gender == {{gender}}, between(rel_time, 0, 5)) |>
+    mutate(lbl_facet = paste0("k = ", rel_time)) |>
+    ggplot(aes(x = years_edu, y = particip_tilde)) +
+    geom_point(color = clr, alpha = 0.1) +
+    geom_smooth(method = "lm", color = clr, fill = clr) +
+    facet_wrap(~lbl_facet) +
+    labs(x = "Years of Education",
+         y = "Chile Penalties on Participation",
+         title = gender) +
+    coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +
+    theme_minimal()
+}
+
+p1 <- plot_scatter("Men")
+p2 <- plot_scatter("Women")
+
+p1 / p2
+```
+
+<div class="figure" style="text-align: center">
+<img src="figure/unnamed-chunk-3-1.svg" alt="plot of chunk unnamed-chunk-3"  />
+<p class="caption">plot of chunk unnamed-chunk-3</p>
+</div>
+
+### On Binscatter
+
+Another way to visualize the relationship is to use the binscatter [@cattaneo2023].
+
+
+
+
+```r
+compute_binsreg <- function(gender, rel_time) {
+  est <- df_indcp |>
+    filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
+    as.data.frame() |>
+    binsreg(x = years_edu, y = particip_tilde, data = _)
+
+  est$data.plot$`Group Full Sample`$data.dots |>
+    mutate(gender = gender, rel_time = rel_time)
+}
+
+bs <- map2(rep(c("Men", "Women"), times = 6),
+           rep(0:5, each = 2),
+           ~compute_binsreg(.x, .y)) |>
+  list_rbind()
+```
+
+
+```r
+plot_binsreg <- function(gender) {
+  clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
+
+  bs |>
+    filter(gender == {{ gender }}) |>
+    mutate(lbl_facet = paste0("k = ", rel_time)) |>
+    ggplot(aes(x = x, y = fit)) +
+    geom_point(color = clr) +
+    facet_wrap(~lbl_facet) +
+    labs(x = "Years of Education",
+         y = "Chile Penalties on Participation",
+         title = gender) +
+    theme_minimal()
+}
+
+p1 <- plot_binsreg("Men")
+p2 <- plot_binsreg("Women")
+
+p1 / p2
+```
+
+<div class="figure" style="text-align: center">
+<img src="figure/unnamed-chunk-6-1.svg" alt="plot of chunk unnamed-chunk-6"  />
+<p class="caption">plot of chunk unnamed-chunk-6</p>
+</div>
+
+## References
