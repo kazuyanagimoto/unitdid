@@ -8,7 +8,7 @@
 #' set.seed(1234)
 #' base_indcp <- gen_data()
 #'
-gen_data <- function(size_cohort = 300) {
+gen_data <- function(size_cohort = 1000) {
 
   year_start <- 1999
   year_end <- 2021

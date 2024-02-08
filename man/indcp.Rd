@@ -9,13 +9,15 @@ indcp(
   yname,
   iname,
   tname,
-  bname,
-  kname,
-  aname = "cage",
+  ename,
+  ytildename = NULL,
   k_min = 0,
   k_max = 5,
-  compute_var_me = FALSE,
-  only_full_horizon = TRUE
+  compute_var = FALSE,
+  only_full_horizon = TRUE,
+  by = NULL,
+  bname = NULL,
+  normalized = FALSE
 )
 }
 \arguments{
@@ -27,19 +29,26 @@ indcp(
 
 \item{tname}{Time variable}
 
-\item{bname}{Birth year variable}
+\item{ename}{Event timing variable}
 
-\item{kname}{Relative time to treatment variable}
-
-\item{aname}{Optional. Age at treatment variable. If not provided, it will be computed as t - b - k and added to the dataframe as \code{cage}.}
+\item{ytildename}{Optional. The name of the imputed outcome variable.
+If not provided, the function will use \code{paste0(yname, "_tilde")}.}
 
 \item{k_min}{Relative time to treatment at which treatment starts. Default is 0.}
 
 \item{k_max}{Relative time to treatment at which treatment ends. Default is 5.}
 
-\item{compute_var_me}{Logical. If TRUE, the function will compute the variance of the measurement errors and the variance of the individual-level child-penalties. Default is FALSE.}
+\item{compute_var}{Logical. If TRUE, the function will compute the variance of the measurement errors and the variance of the individual-level child-penalties. Default is FALSE.}
 
 \item{only_full_horizon}{Logical. If TRUE, when you aggregate the individual child penalties, only the cohorts with full horizon (\code{k_min:k_max}) will be included. Default is TRUE.}
+
+\item{by}{A character vector of variables to estimate separately by. Default is NULL.}
+
+\item{bname}{Birth year variable. Default is NULL.
+Necessary to aggregate the estimates by age at event.}
+
+\item{normalized}{Logical. If TRUE,
+the function will normalize the outcome variable scale. Default is FALSE.}
 }
 \value{
 A \code{indcp} class object.

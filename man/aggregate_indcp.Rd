@@ -9,9 +9,15 @@ aggregate_indcp(object, agg = "full", na.rm = TRUE)
 \arguments{
 \item{object}{\code{indcp} object}
 
-\item{agg}{Aggregation method. One of \code{c("full", "cage", "cage_byear")} and the default is \code{full}. The \code{cage} means the age at the treatment. The \code{cage_byear} means the age at the treatment and the birth year.}
+\item{agg}{Aggregation method.
+One of \code{c("full", "event", "event_age")} and the default is \code{full}.
+If \code{by} is provided in the model,
+all the options will separately aggregate by its group.
+The \code{event} option aggregates by the group of the event timing.
+The \code{event_age} option aggregates by the group of the age at the event timing.
+\code{event_age} requires the \code{bname} to be provided in the model.}
 
-\item{na.rm}{Logical. If \code{TRUE} and \code{agg = c("cage", "cage_byear")}, remove \code{NA} values for \code{sd_epsilon} aggregation. The default is \code{TRUE}.}
+\item{na.rm}{Logical. If \code{TRUE}, remove \code{NA} values for the aggregation. The default is \code{TRUE}.}
 }
 \value{
 A \code{tibble} with the summary statistics

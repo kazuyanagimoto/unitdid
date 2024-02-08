@@ -1,10 +1,10 @@
 ---
-title: "An Example with PSID"
+title: "Child Penalties with PSID"
 author: Kazuharu Yanagimoto
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{An Example with PSID}
+  %\VignetteIndexEntry{Child Penalties with PSID}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -85,59 +85,40 @@ save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 
 ## Analysis of Child Penalties on Participation
 
-```{r indcp_cage, eval=FALSE}
+```{r indcp_cage}
 load(here("vignettes/example_psid/cp_psid.rds"))
 
 cp_psid <- cp_psid |>
-  mutate(cage = cyear - byear) |>
+  mutate(eage = cyear - byear) |>
   filter(cyear >= 1968,
          year <= 1997, # The last year of the annual data
-         between(cage, 22, 40)) # The Age range of the first childbirth
+         between(eage, 22, 40)) # The Age range of the first childbirth
 
-mdl_particip_m <- cp_psid |>
-  filter(gender == "Men") |>
+mdl_particip <- cp_psid |>
   indcp(yname = "particip",
         iname = "id",
         tname = "year",
+        ename = "cyear",
         bname = "byear",
-        kname = "rel_time",
-        compute_var_me = TRUE)
-
-mdl_particip_f <- cp_psid |>
-  filter(gender == "Women") |>
-  indcp(yname = "particip",
-        iname = "id",
-        tname = "year",
-        bname = "byear",
-        kname = "rel_time",
-        compute_var_me = TRUE)
-
-save(mdl_particip_m, mdl_particip_f,
-     file = here("vignettes/example_psid/mdl_particip.RData"))
+        by = c("gender"),
+        compute_var = TRUE)
 ```
 
 ### Mean of Child Penalties on Participation
 
 ```{r mean_cage, fig.align='center', fig.height=4.33, fig.width=7}
-load(here("vignettes/example_psid/mdl_particip.RData"))
-
-sum_particip_m <- summary(mdl_particip_m, agg = "cage") |>
-  mutate(gender = "Men")
-sum_particip_f <- summary(mdl_particip_f, agg = "cage") |>
-  mutate(gender = "Women")
-
-sum_particip <- bind_rows(sum_particip_m, sum_particip_f) |>
-  filter(between(cage, 22, 30))
+sum_particip <- summary(mdl_particip, agg = "event_age") |>
+  filter(between(event_age, 22, 30))
 
 df_plot <- sum_particip |>
   filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean_particip_tilde = 0,
-         sd_particip_tilde_estimated = 0) |>
+  mutate(rel_time = -1, mean = 0,
+         var = 0) |>
   bind_rows(sum_particip) |>
-  mutate(lbl_facet = paste0("Age ", cage))
+  mutate(lbl_facet = paste0("Age ", event_age))
 
 df_plot |>
-  ggplot(aes(x = rel_time, y = mean_particip_tilde,
+  ggplot(aes(x = rel_time, y = mean,
              color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
@@ -158,7 +139,7 @@ df_plot |>
 
 ```{r sd_cage, fig.align='center', fig.height=4.33, fig.width=7}
 df_plot |>
-  ggplot(aes(x = rel_time, y = sd_particip_tilde_estimated,
+  ggplot(aes(x = rel_time, y = sqrt(var),
              color = gender, shape = gender)) +
   geom_point() +
   geom_line() +
@@ -174,24 +155,20 @@ df_plot |>
         legend.position = "bottom")
 ```
 
+
 ## Scatter Plot with Covariates
 
 To highlight the flexibility of the individual child penalties, let's plot the
 relationship between the years of education and the child penalties.
 
-```{r}
-library(patchwork)
-library(binsreg)
-
-df_indcp <- bind_rows(mdl_particip_m$df_indcp |> mutate(gender = "Men"),
-                      mdl_particip_f$df_ind |> mutate(gender = "Women"))
-```
-
 ```{r, fig.align='center', fig.height=11.33, fig.width=7}
+library(patchwork)
+
+indcp_particip <- get_indcp(mdl_particip)
 plot_scatter <- function(gender) {
   clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
-  df_indcp |>
+  indcp_particip |>
     filter(gender == {{gender}}, between(rel_time, 0, 5)) |>
     mutate(lbl_facet = paste0("k = ", rel_time)) |>
     ggplot(aes(x = years_edu, y = particip_tilde)) +
@@ -216,9 +193,10 @@ p1 / p2
 Another way to visualize the relationship is to use the binscatter [@cattaneo2023].
 
 ```{r, include=FALSE}
+library(binsreg)
 # Since I cannot hide plots in binsreg, I duplicate the code with `eval = FALSE`
 compute_binsreg <- function(gender, rel_time) {
-  est <- df_indcp |>
+  est <- indcp_particip |>
     filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
     as.data.frame() |>
     binsreg(x = years_edu, y = particip_tilde, data = _)
@@ -234,8 +212,9 @@ bs <- map2(rep(c("Men", "Women"), times = 6),
 ```
 
 ```{r, eval = FALSE}
+library(binsreg)
 compute_binsreg <- function(gender, rel_time) {
-  est <- df_indcp |>
+  est <- indcp_particip |>
     filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
     as.data.frame() |>
     binsreg(x = years_edu, y = particip_tilde, data = _)

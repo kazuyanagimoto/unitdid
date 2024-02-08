@@ -1,17 +1,19 @@
 compute_projection <- function(object) {
 
   object$aggregated <- object$data |>
-    dplyr::group_by(!!rlang::sym(object$info$by)) %>%
-    dplyr::do(projection_group(., object$info$tname, object$info$aname,
+    dplyr::group_by(!!!rlang::syms(object$info$by_est)) %>%
+    dplyr::do(projection_group(., object$info$tname, object$info$ename,
                                object$info$k_min, object$info$k_max,
                                object$info$compute_var,
                                object$info$only_full_horizon)) |>
     dplyr::ungroup()
 
+  object$data <- object$data |> dplyr::ungroup()
+
   return(object)
 }
 
-projection_group <- function(data, tname, aname, k_min, k_max,
+projection_group <- function(data, tname, ename, k_min, k_max,
                              compute_var, only_full_horizon) {
 
   aggregated <- data |>
@@ -19,8 +21,8 @@ projection_group <- function(data, tname, aname, k_min, k_max,
     dplyr::summarize(zz000mean = mean(zz000ytilde),
                      zz000vartr = stats::var(zz000ytilde),
                      zz000n = dplyr::n(),
-                     .by = c(aname, "zz000k")) |>
-    dplyr::arrange(!!rlang::sym(aname), zz000k)
+                     .by = c(ename, "zz000k")) |>
+    dplyr::arrange(!!rlang::sym(ename), zz000k)
 
   if (nrow(aggregated) == 0) {
     return(aggregated)
@@ -28,37 +30,37 @@ projection_group <- function(data, tname, aname, k_min, k_max,
 
   if (only_full_horizon) {
     ak_feasible <- aggregated |>
-      dplyr::distinct(!!rlang::sym(aname), zz000k)
+      dplyr::distinct(!!rlang::sym(ename), zz000k)
 
     ak_feasible <- ak_feasible |>
-      dplyr::summarize(zz000k_max = max(zz000k), .by = aname) |>
+      dplyr::summarize(zz000k_max = max(zz000k), .by = ename) |>
       dplyr::filter(zz000k_max == k_max) |>
       dplyr::select(-zz000k_max) |>
-      dplyr::left_join(ak_feasible, by = aname)
+      dplyr::left_join(ak_feasible, by = ename)
 
     if (nrow(ak_feasible) == 0) {
       return(aggregated[FALSE, ])
     }
 
     aggregated <- ak_feasible |>
-      dplyr::left_join(aggregated, by = c(aname, "zz000k"))
+      dplyr::left_join(aggregated, by = c(ename, "zz000k"))
   }
 
   if (compute_var) {
     sum_varcont <- ak_feasible |>
-      dplyr::mutate(zz000varcont = purrr::map2_dbl(!!rlang::sym(aname), zz000k,
-                                                ~ varcont_ak(data, tname, aname, .x, .y)))
+      dplyr::mutate(zz000varcont = purrr::map2_dbl(!!rlang::sym(ename), zz000k,
+                                                ~ varcont_ak(data, tname, ename, .x, .y)))
 
     aggregated <- aggregated |>
-      dplyr::left_join(sum_varcont, by = c(aname, "zz000k")) |>
+      dplyr::left_join(sum_varcont, by = c(ename, "zz000k")) |>
       dplyr::mutate(zz000var = zz000vartr - zz000varcont)
   }
 
   return(aggregated)
 }
 
-varcont_ak <- function(data, tname, aname, a, k) {
+varcont_ak <- function(data, tname, ename, a, k) {
 
-  stats::var(data[data[[aname]] > a + k & data[[tname]] <= a + k, ]$zz000ytilde)
+  stats::var(data[data[[ename]] > a + k & data[[tname]] <= a + k, ]$zz000ytilde)
 
 }

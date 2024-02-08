@@ -4,7 +4,7 @@
 \alias{gen_data}
 \title{Generate Sample Data}
 \usage{
-gen_data(size_cohort = 500)
+gen_data(size_cohort = 1000)
 }
 \arguments{
 \item{size_cohort}{n_obsumber of individuals per birth year}

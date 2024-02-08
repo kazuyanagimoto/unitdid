@@ -10,9 +10,9 @@
 #'   indcp(yname = "y",
 #'         iname = "id",
 #'         tname = "year",
-#'         bname = "byear",
-#'         kname = "rel_time")
-#' summary(mdl_base, agg = "cage")
+#'         ename = "cyear",
+#'         bname = "byear")
+#' summary(mdl_base, agg = "event_age")
 #'
 #' @export
 #'
