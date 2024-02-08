@@ -59,8 +59,9 @@ gen_data <- function(size_cohort = 300) {
       y = alpha + lambda + tau + epsilon)
 
   df_raw <- df_full |>
-    dplyr::filter(dplyr::between(year, year_start, year_end)) |>
-    dplyr::select("id", "year", "byear", "cage", "rel_time", "y")
+    dplyr::filter(dplyr::between(year, year_start, year_end),
+                  cyear <= year_end) |>
+    dplyr::select("id", "year", "byear", "cyear", "y")
 
   return(df_raw)
 }

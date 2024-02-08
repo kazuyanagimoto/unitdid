@@ -110,18 +110,24 @@ set.seed(1234)
 n_sim <- 100
 
 sim <- function() {
-  mdl <- gen_data() |>
+  mdl_base <- gen_data() |>
   indcp(yname = "y",
         iname = "id",
         tname = "year",
-        bname = "byear",
-        kname = "rel_time",
-        compute_var_me = TRUE)
+        aname = "cyear",
+        by = c("byear"),
+        compute_var = TRUE)
 
-  summary(mdl, agg = "cage")
+  mdl_base$aggregated |>
+    mutate(cage = cyear - byear) |>
+    summarize(tau = stats::weighted.mean(zz000mean, w = zz000n, na.rm = TRUE),
+              var = stats::weighted.mean(zz000var, w = zz000n, na.rm = TRUE),
+              n = sum(zz000n),
+              .by = c(cage, zz000k)) |>
+    rename(rel_time = zz000k)
 }
 
-path_sim <- here::here("vignettes/base_indcp/simulated2.rds")
+path_sim <- here::here("vignettes/base_indcp/simulated.rds")
 
 if (!file.exists(path_sim)) {
   simulated <- map(1:n_sim, ~sim(), .progress = TRUE) |>
@@ -151,8 +157,7 @@ val_true <- tibble(
   select(-c(tau1, sd1))
 
 df_plot <- simulated |>
-  rename(tau = mean_y_tilde,
-         sd = sd_y_tilde_estimated) |>
+  mutate(sd = sqrt(pmax(var, 0))) |>
   summarize(across(c(tau, sd), list("lci" = ~quantile(.x, 0.025),
                                     "rci" = ~quantile(.x, 0.975))),
             across(c(tau, sd), mean),

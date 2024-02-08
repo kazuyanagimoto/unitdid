@@ -19,17 +19,38 @@ indcp <- function(data,
                   yname,
                   iname,
                   tname,
-                  bname,
-                  kname,
-                  aname = "cage",
+                  aname,
+                  by,
                   k_min = 0,
                   k_max = 5,
-                  compute_var_me = FALSE,
+                  compute_var = FALSE,
                   only_full_horizon = TRUE) {
 
-  object <- prep_data(data, yname, iname, tname, bname, kname, aname,
-                      k_min, k_max, compute_var_me, only_full_horizon)
+  # Sample Selection & Variable Creation
+  t_min <- data[[tname]] |> min()
+  data <- data[data[[aname]] + k_min > t_min &
+                 data[[aname]] + k_max >= data[[tname]], ]
+  data$zz000k <- data[[tname]] - data[[aname]]
 
+  # Imputation
+  data <- data |>
+    dplyr::group_by(!!rlang::sym(by)) %>%
+    dplyr::do(prep_data(., yname, iname, tname, aname, k_min))
+
+  # Construct the object
+  info <- list(yname = yname,
+               iname = iname,
+               tname = tname,
+               aname = aname,
+               by = by,
+               k_min = k_min,
+               k_max = k_max,
+               compute_var = compute_var,
+               only_full_horizon = only_full_horizon)
+  object <- list(data = data, info = info)
+  class(object) <- "indcp"
+
+  # Compute the projection
   object <- compute_projection(object)
 
   return(object)

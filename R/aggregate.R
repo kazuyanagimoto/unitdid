@@ -7,39 +7,12 @@
 #' @return A `tibble` with the summary statistics
 #' @export
 #'
-aggregate_indcp <- function(object, agg = "full", na.rm = TRUE) {
+aggregate_indcp <- function(object, .by, na.rm = TRUE) {
 
-  kname <- object$info$kname
-  aname <- object$info$aname
-  ytildename <- object$info$ytildename
-
-  result <- dplyr::tibble()
-
-  if (agg == "full") {
-
-    result <- object$aggregated |>
-      dplyr::summarize(!!paste0("mean_", ytildename) := stats::weighted.mean(!!rlang::sym(paste0("mean_", ytildename))),
-                       dplyr::across(dplyr::starts_with("sd_"), ~sqrt(stats::weighted.mean(.x^2, w = !!rlang::sym("n"), na.rm = na.rm))),
-                       n = sum(!!rlang::sym("n")),
-                       .by = kname) |>
-      dplyr::arrange(!!rlang::sym(kname))
-
-  } else if (agg == "cage") {
-
-    result <- object$aggregated |>
-      dplyr::summarize(!!paste0("mean_", ytildename) := stats::weighted.mean(!!rlang::sym(paste0("mean_", ytildename))),
-                       dplyr::across(dplyr::starts_with("sd_"), ~sqrt(stats::weighted.mean(.x^2, w = !!rlang::sym("n"), na.rm = na.rm))),
-                       n = sum(!!rlang::sym("n")),
-                       .by = c(aname, kname)) |>
-      dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
-
-  } else if (agg == "cage_byear") {
-
-    result <- object$aggregated
-
-  } else {
-    stop("agg must be one of 'full', 'cage', or 'cage_byear'")
-  }
-
-  return(result)
+  object$aggregated |>
+    dplyr::summarize(zz000mean = stats::weighted.mean(zz000mean, w = zz000n, na.rm = TRUE),
+                     zz000var = stats::weighted.mean(zz000var^2, w = zz000n, na.rm = TRUE),
+                     n = sum(zz000n),
+                     .by = .by)
+  
 }
