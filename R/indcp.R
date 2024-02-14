@@ -51,7 +51,8 @@ indcp <- function(data,
   # Imputation
   data <- data |>
     dplyr::group_by(!!!rlang::syms(by_est)) %>%
-    dplyr::do(prep_data(., yname, iname, tname, ename, k_min, normalized))
+    dplyr::do(prep_data(., yname, iname, tname, ename, k_min, normalized)) |>
+    dplyr::ungroup()
 
   # Construct the object
   info <- list(yname = yname,
@@ -65,9 +66,17 @@ indcp <- function(data,
                only_full_horizon = only_full_horizon,
                by = by,
                bname = bname,
-               by_est = by_est)
+               by_est = by_est,
+               normalized = normalized)
   object <- list(data = data, info = info)
   class(object) <- "indcp"
+
+  # Denominator of Normalization
+  if (normalized) {
+    object$yhat_agg <- data |>
+      dplyr::summarize(zz000yhat_agg = mean(zz000yhat),
+                       .by = c(!!!rlang::syms(by_est), ename, tname))
+  }
 
   # Compute the projection
   object <- compute_projection(object)

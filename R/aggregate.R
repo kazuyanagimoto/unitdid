@@ -13,7 +13,25 @@
 #' @return A `tibble` with the summary statistics
 #' @export
 #'
-aggregate_indcp <- function(object, agg = "full", na.rm = TRUE) {
+aggregate_indcp <- function(object, agg = "full", na.rm = TRUE, normalized = NULL) {
+
+  if (is.null(normalized)) {
+    normalized <- object$info$normalized
+  }
+
+  if (normalized) {
+    object$aggregated <- object$aggregated |>
+      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
+      dplyr::left_join(object$yhat_agg,
+                       by = c(object$info$by_est, object$info$ename,
+                              "zz000t" = object$info$tname)) |>
+      dplyr::mutate(zz000mean = zz000mean / zz000yhat_agg)
+
+    if (object$info$compute_var) {
+      object$aggregated <- object$aggregated |>
+        dplyr::mutate(zz000var = zz000var / zz000yhat_agg^2)
+    }
+  }
 
   by <- c(object$info$by, "zz000k")
 

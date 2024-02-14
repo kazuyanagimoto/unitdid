@@ -20,14 +20,5 @@ prep_data <- function(data, yname, iname, tname, ename, k_min, normalized) {
   data <- data |>
     dplyr::filter(!is.na(zz000yhat))
 
-  if (normalized) {
-    yhat_agg <- data |>
-      dplyr::summarize(zz000yhat_agg = mean(zz000yhat), .by = c(ename, tname))
-
-    data <- data |>
-      dplyr::left_join(yhat_agg, by = c(ename, tname)) |>
-      dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg)
-  }
-
   return (data)
 }

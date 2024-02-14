@@ -2,7 +2,8 @@ compute_projection <- function(object) {
 
   object$aggregated <- object$data |>
     dplyr::group_by(!!!rlang::syms(object$info$by_est)) %>%
-    dplyr::do(projection_group(., object$info$tname, object$info$ename,
+    dplyr::do(projection_group(., object$info$iname, object$info$tname,
+                               object$info$ename,
                                object$info$k_min, object$info$k_max,
                                object$info$compute_var,
                                object$info$only_full_horizon)) |>
@@ -13,7 +14,7 @@ compute_projection <- function(object) {
   return(object)
 }
 
-projection_group <- function(data, tname, ename, k_min, k_max,
+projection_group <- function(data, iname, tname, ename, k_min, k_max,
                              compute_var, only_full_horizon) {
 
   aggregated <- data |>
@@ -48,8 +49,9 @@ projection_group <- function(data, tname, ename, k_min, k_max,
 
   if (compute_var) {
     sum_varcont <- ak_feasible |>
-      dplyr::mutate(zz000varcont = purrr::map2_dbl(!!rlang::sym(ename), zz000k,
-                                                ~ varcont_ak(data, tname, ename, .x, .y)))
+      dplyr::mutate(zz000varcont = purrr::map2_dbl(
+          !!rlang::sym(ename), zz000k,
+          ~ varcont_ek(data, iname, tname, ename, .x, .y)))
 
     aggregated <- aggregated |>
       dplyr::left_join(sum_varcont, by = c(ename, "zz000k")) |>
@@ -59,8 +61,24 @@ projection_group <- function(data, tname, ename, k_min, k_max,
   return(aggregated)
 }
 
-varcont_ak <- function(data, tname, ename, a, k) {
+varcont_ek <- function(data, iname, tname, ename, e, k) {
 
-  stats::var(data[data[[ename]] > a + k & data[[tname]] <= a + k, ]$zz000ytilde)
+  v_ek <- data |>
+    dplyr::filter(!!rlang::sym(ename) > e + k,
+                  !!rlang::sym(tname) < e + k) |>
+    dplyr::summarize(v_ek = mean(zz000ytilde),
+                     .by = !!rlang::sym(iname))
+
+  if (nrow(v_ek) == 0) {
+    return(NA_real_)
+  }
+
+  data |>
+    dplyr::filter(!!rlang::sym(ename) > e + k,
+                  !!rlang::sym(tname) == e + k) |>
+    dplyr::left_join(v_ek, by = c(iname)) |>
+    dplyr::mutate(zz000epsilonhat = zz000ytilde - v_ek) |>
+    dplyr::pull() |>
+    stats::var()
 
 }
