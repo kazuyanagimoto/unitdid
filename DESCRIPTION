@@ -1,15 +1,14 @@
 Type: Package
-Package: indcp
-Title: Individual-level Child Penalty Estimator
-Version: 0.0.0.9000
+Package: unitdid
+Title: Unit-level Difference-in-Difference Estimator
+Version: 0.0.1
 Authors@R: 
     person(given = "Kazuharu",
            family = "Yanagimoto",
            email = "kazuharu.yanagimoto@gmail.com",
            role = c("aut", "cre"),
            comment = c(ORCID = "0009-0007-1967-8304"))
-Description: Estimate Individual-level Child Penalty Estimator
-    (Arkhangelsky, Yanagimoto, and Zohar, 2024).
+Description: The package provides a function to estimate the unit-level difference-in-difference estimator proposed by Arkhangelsky, Yanagimoto, and Zohar (2024).
 License: MIT + file LICENSE
 Depends: 
     R (>= 4.1.0)
@@ -33,5 +32,5 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-URL: http://kazuyanagimoto.com/indcp/
+URL: http://kazuyanagimoto.com/unitdid/
 VignetteBuilder: knitr

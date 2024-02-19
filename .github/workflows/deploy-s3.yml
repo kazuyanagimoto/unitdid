@@ -1,7 +1,7 @@
 name: Build on S3
 on:
   push:
-      branches: [main, dev]
+      branches: [dev]
 
 jobs:
   UploadStaticFiles:
