@@ -1,13 +1,13 @@
-#' Aggregate the mean and variance of the estimated individual-level child penalties
+#' Aggregate the mean and variance of the estimated unit-level DiD effects
 #'
-#' @param object `indcp` object
-#' @param ... `aggregate_indcp` arguments
+#' @param object `unitdid` object
+#' @param ... `aggregate_unitdid` arguments
 #'
 #' @return A `tibble` with the summary statistics
 #' @examples
-#' library(indcp)
-#' mdl_base <- base_indcp |>
-#'   indcp(yname = "y",
+#' library(unitdid)
+#' mdl_base <- base_heterocp |>
+#'   unitdid(yname = "y",
 #'         iname = "id",
 #'         tname = "year",
 #'         ename = "cyear",
@@ -16,7 +16,7 @@
 #'
 #' @export
 #'
-summary.indcp <- function(object, ...) {
+summary.unitdid <- function(object, ...) {
 
-  aggregate_indcp(object, ...)
+  aggregate_unitdid(object, ...)
 }

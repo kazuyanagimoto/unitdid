@@ -1,6 +1,6 @@
-#' Aggregate the mean and variance of the estimated individual-level child penalties
+#' Aggregate the mean and variance of the estimated unit-level DiD effects
 #'
-#' @param object `indcp` object
+#' @param object `unitdid` object
 #' @param agg Aggregation method.
 #' One of `c("full", "event", "event_age")` and the default is `full`.
 #' If `by` is provided in the model,
@@ -9,11 +9,13 @@
 #' The `event_age` option aggregates by the group of the age at the event timing.
 #' `event_age` requires the `bname` to be provided in the model.
 #' @param na.rm Logical. If `TRUE`, remove `NA` values for the aggregation. The default is `TRUE`.
+#' @param normalized Logical. If `TRUE`, the function will normalize the aggregated mean and variance
+#' by the mean of the imputed outcome variable. Default is inherited from the `unitdid` object.
 #'
-#' @return A `tibble` with the summary statistics
+#' @return A `tibble` with the aggregated mean and variance of the estimated unit-level DiD effects
 #' @export
 #'
-aggregate_indcp <- function(object, agg = "full", na.rm = TRUE, normalized = NULL) {
+aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = NULL) {
 
   if (is.null(normalized)) {
     normalized <- object$info$normalized

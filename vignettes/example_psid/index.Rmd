@@ -1,7 +1,7 @@
 ---
-title: "Child Penalties with PSID"
+title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
-date: 'February 08, 2024'
+date: 'February 19, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Child Penalties with PSID}
@@ -17,7 +17,7 @@ bibliography: references.bib
 
 
 ```r
-library(indcp)
+library(unitdid)
 library(here)
 library(tidyverse)
 library(haven)
@@ -89,7 +89,7 @@ cp_psid <- cp_psid |>
          between(eage, 22, 40)) # The Age range of the first childbirth
 
 mdl_particip <- cp_psid |>
-  indcp(yname = "particip",
+  unitdid(yname = "particip",
         iname = "id",
         tname = "year",
         ename = "cyear",
@@ -102,8 +102,8 @@ mdl_particip <- cp_psid |>
 
 
 ```r
-sum_particip <- summary(mdl_particip, agg = "event_age") |>
-  filter(between(event_age, 22, 30))
+sum_particip <- summary(mdl_particip, agg = "event_age", na.rm = TRUE) |>
+  filter(between(event_age, 26, 32))
 
 df_plot <- sum_particip |>
   filter(rel_time == 0) |>
@@ -171,19 +171,19 @@ relationship between the years of education and the child penalties.
 ```r
 library(patchwork)
 
-indcp_particip <- get_indcp(mdl_particip)
+unitdid_particip <- get_unitdid(mdl_particip)
 plot_scatter <- function(gender) {
   clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
-  indcp_particip |>
+  unitdid_particip |>
     filter(gender == {{gender}}, between(rel_time, 0, 5)) |>
     mutate(lbl_facet = paste0("k = ", rel_time)) |>
     ggplot(aes(x = years_edu, y = particip_tilde)) +
     geom_point(color = clr, alpha = 0.1) +
     geom_smooth(method = "lm", color = clr, fill = clr) +
-    facet_wrap(~lbl_facet) +
+    facet_wrap(~lbl_facet, nrow = 1) +
     labs(x = "Years of Education",
-         y = "Chile Penalties on Participation",
+         y = "CP on Participation",
          title = gender) +
     coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +
     theme_minimal()
@@ -210,7 +210,7 @@ Another way to visualize the relationship is to use the binscatter [@cattaneo202
 ```r
 library(binsreg)
 compute_binsreg <- function(gender, rel_time) {
-  est <- indcp_particip |>
+  est <- unitdid_particip |>
     filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
     as.data.frame() |>
     binsreg(x = years_edu, y = particip_tilde, data = _)
@@ -235,9 +235,9 @@ plot_binsreg <- function(gender) {
     mutate(lbl_facet = paste0("k = ", rel_time)) |>
     ggplot(aes(x = x, y = fit)) +
     geom_point(color = clr) +
-    facet_wrap(~lbl_facet) +
+    facet_wrap(~lbl_facet, nrow = 1) +
     labs(x = "Years of Education",
-         y = "Chile Penalties on Participation",
+         y = "CP on Participation",
          title = gender) +
     theme_minimal()
 }
