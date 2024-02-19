@@ -1,45 +1,72 @@
-#' Aggregate the mean and variance of the estimated individual-level child penalties
+#' Aggregate the mean and variance of the estimated unit-level DiD effects
 #'
-#' @param object `indcp` object
-#' @param agg Aggregation method. One of `c("full", "cage", "cage_byear")` and the default is `full`. The `cage` means the age at the treatment. The `cage_byear` means the age at the treatment and the birth year.
-#' @param na.rm Logical. If `TRUE` and `agg = c("cage", "cage_byear")`, remove `NA` values for `sd_epsilon` aggregation. The default is `TRUE`.
+#' @param object `unitdid` object
+#' @param agg Aggregation method.
+#' One of `c("full", "event", "event_age")` and the default is `full`.
+#' If `by` is provided in the model,
+#' all the options will separately aggregate by its group.
+#' The `event` option aggregates by the group of the event timing.
+#' The `event_age` option aggregates by the group of the age at the event timing.
+#' `event_age` requires the `bname` to be provided in the model.
+#' @param na.rm Logical. If `TRUE`, remove `NA` values for the aggregation. The default is `TRUE`.
+#' @param normalized Logical. If `TRUE`, the function will normalize the aggregated mean and variance
+#' by the mean of the imputed outcome variable. Default is inherited from the `unitdid` object.
 #'
-#' @return A `tibble` with the summary statistics
+#' @return A `tibble` with the aggregated mean and variance of the estimated unit-level DiD effects
 #' @export
 #'
-aggregate_indcp <- function(object, agg = "full", na.rm = TRUE) {
+aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = NULL) {
 
-  kname <- object$info$kname
-  aname <- object$info$aname
-  ytildename <- object$info$ytildename
-
-  result <- dplyr::tibble()
-
-  if (agg == "full") {
-
-    result <- object$aggregated |>
-      dplyr::summarize(!!paste0("mean_", ytildename) := stats::weighted.mean(!!rlang::sym(paste0("mean_", ytildename))),
-                       dplyr::across(dplyr::starts_with("sd_"), ~sqrt(stats::weighted.mean(.x^2, w = !!rlang::sym("n"), na.rm = na.rm))),
-                       n = sum(!!rlang::sym("n")),
-                       .by = kname) |>
-      dplyr::arrange(!!rlang::sym(kname))
-
-  } else if (agg == "cage") {
-
-    result <- object$aggregated |>
-      dplyr::summarize(!!paste0("mean_", ytildename) := stats::weighted.mean(!!rlang::sym(paste0("mean_", ytildename))),
-                       dplyr::across(dplyr::starts_with("sd_"), ~sqrt(stats::weighted.mean(.x^2, w = !!rlang::sym("n"), na.rm = na.rm))),
-                       n = sum(!!rlang::sym("n")),
-                       .by = c(aname, kname)) |>
-      dplyr::arrange(!!rlang::sym(aname), !!rlang::sym(kname))
-
-  } else if (agg == "cage_byear") {
-
-    result <- object$aggregated
-
-  } else {
-    stop("agg must be one of 'full', 'cage', or 'cage_byear'")
+  if (is.null(normalized)) {
+    normalized <- object$info$normalized
   }
 
-  return(result)
+  if (normalized) {
+    object$aggregated <- object$aggregated |>
+      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
+      dplyr::left_join(object$yhat_agg,
+                       by = c(object$info$by_est, object$info$ename,
+                              "zz000t" = object$info$tname)) |>
+      dplyr::mutate(zz000mean = zz000mean / zz000yhat_agg)
+
+    if (object$info$compute_var) {
+      object$aggregated <- object$aggregated |>
+        dplyr::mutate(zz000var = zz000var / zz000yhat_agg^2)
+    }
+  }
+
+  by <- c(object$info$by, "zz000k")
+
+  if (agg == "full") {
+    # Skip
+  } else if (agg == "event") {
+    by <- c(by, object$info$ename)
+  } else if (agg == "event_age") {
+    if (is.null(object$info$bname)) {
+      stop("You need to provide the bname in the model to aggregate by age at the event.")
+    } else {
+      by <- c(by, "event_age")
+      object$aggregated <- object$aggregated |>
+        dplyr::mutate(event_age = !!rlang::sym(object$info$ename) -
+                        !!rlang::sym(object$info$bname))
+    }
+  } else {
+    stop("The `agg` argument must be one of `c('full', 'event', 'event_age')`.")
+  }
+
+  if (object$info$compute_var) {
+    result <- object$aggregated |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000n, na.rm = na.rm),
+                       var = pmax(stats::weighted.mean(zz000var, w = zz000n, na.rm = na.rm), 0),
+                       n = sum(zz000n),
+                       .by = by)
+  } else {
+    result <- object$aggregated |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000n, na.rm = na.rm),
+                       n = sum(zz000n),
+                       .by = by)
+  }
+
+  result |>
+    dplyr::rename("rel_time" = zz000k)
 }

@@ -16,50 +16,48 @@ knitr::opts_chunk$set(
 )
 ```
 
-# indcp
+# unitdid
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The `indcp` package provides a set of functions for the analysis of
-the individual-level child penalties (Arkhangelsky, Yanagimoto, and Zohar, 2024)
+The `unitdid` package provides a set of functions for the analysis of
+the unit-level difference-in-differences (Arkhangelsky, Yanagimoto, and Zohar, 2024)
 
 ## Installation
 
-You can install the development version of indcp from [GitHub](https://github.com/) with:
+You can install the development version of unitdid from [GitHub](https://github.com/kazuyanagimoto/unitdid) with:
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("kazuyanagimoto/indcp")
+remotes::install_github("kazuyanagimoto/unitdid")
 ```
 
 ## Example
 
-This is a basic example with the simulated `base_indcp` data set:
+This is a basic example with the simulated `base_heterocp` data set:
 
 ```{r example}
-library(indcp)
+library(unitdid)
 library(dplyr)
 library(ggplot2)
 
-base_indcp |>
+base_heterocp |>
   head()
 ```
 
-Individual-level child penalties are estimated by `indcp()`:
+Individual-level child penalties are estimated by `unitdid()`:
 
-```{r mdl_indcp}
-mdl_base <- base_indcp |>
-  filter(cage >= 25) |>
-  indcp(yname = "y",
+```{r mdl_unitdid}
+mdl_base <- base_heterocp |>
+  unitdid(yname = "y",
         iname = "id",
         tname = "year",
-        bname = "byear",
-        kname = "rel_time")
+        ename = "cyear",
+        bname = "byear")
 
 # Estimated individual-level child penalties (y_tilde)
-mdl_base$df_indcp |>
-  head()
+get_unitdid(mdl_base)
 ```
 
 ### Aggregation of Individual-level Child Penalties
@@ -72,16 +70,16 @@ summary(mdl_base) # default agg = "full"
 ```
 
 ```{r agg_cage}
-sum_cage <- summary(mdl_base, agg = "cage")
+sum_eage <- summary(mdl_base, agg = "event_age")
 
-sum_cage |>
+sum_eage |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         mean_y_tilde = 0) |>
-  bind_rows(sum_cage) |>
-  filter(between(cage, 25, 34)) |>
-  mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = mean_y_tilde)) +
+         mean = 0) |>
+  bind_rows(sum_eage) |>
+  filter(between(event_age, 25, 34)) |>
+  mutate(lbl_facet = paste0("Age ", event_age)) |>
+  ggplot(aes(x = rel_time, y = mean)) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
@@ -99,30 +97,29 @@ Since the individual-level child penalties are estimated with measurement errors
 the variance of the `y_tilde` is not equal to the variance of
 the individual-level child penalties.
 
-The `compute_var_me` option of the `indcp` estimates the variance of
+The `compute_var` option of the `unitdid` estimates the variance of
 the measurement errors and the variance of the individual-level child penalties
 by subtracting the variance of the measurement errors from the variance of `y_tilde`
 
 ```{r var_cage}
-mdl_base_var <- base_indcp |>
-  filter(cage >= 25) |>
-  indcp(yname = "y",
+mdl_base <- base_heterocp |>
+  unitdid(yname = "y",
         iname = "id",
         tname = "year",
+        ename = "cyear",
         bname = "byear",
-        kname = "rel_time",
-        compute_var_me = TRUE)
+        compute_var = TRUE)
 
-sum_cage_var <- summary(mdl_base_var, agg = "cage")
+sum_eage <- summary(mdl_base, agg = "event_age")
 
-sum_cage_var |>
+sum_eage |>
   filter(rel_time == 0) |>
   mutate(rel_time = -1,
-         sd_y_tilde_estimated = 0) |>
-  bind_rows(sum_cage_var) |>
-  filter(between(cage, 25, 34)) |>
-  mutate(lbl_facet = paste0("Age ", cage)) |>
-  ggplot(aes(x = rel_time, y = sd_y_tilde_estimated)) +
+         var = 0) |>
+  bind_rows(sum_eage) |>
+  filter(between(event_age, 25, 34)) |>
+  mutate(lbl_facet = paste0("Age ", event_age)) |>
+  ggplot(aes(x = rel_time, y = sqrt(var))) +
   geom_point() +
   geom_line() +
   geom_vline(xintercept = -1, linetype = "dashed") +
