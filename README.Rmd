@@ -62,8 +62,9 @@ get_unitdid(mdl_base)
 
 ### Aggregation of Individual-level Child Penalties
 
-They can be aggregated to the `full`, `cage` (age at childbirth),
-and `cage_byear` (age at childbirth and birth year) levels:
+They can be aggregated to the `full`,
+`event` (year at event (treatment). Mainly for staggered DiD design),
+`event_age` (age at event. Mainly for child penalties) levels:
 
 ```{r agg_full}
 summary(mdl_base) # default agg = "full"
