@@ -1,4 +1,5 @@
-url: http://kazuyanagimoto.com/indcp/
+url: http://kazuyanagimoto.com/unitdid/
 template:
   bootstrap: 5
+  bootswatch: minty
 

@@ -13,7 +13,7 @@ Zohar, 2024)
 ## Installation
 
 You can install the development version of unitdid from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/kazuyanagimoto/unitdid) with:
 
 ``` r
 # install.packages("remotes")
@@ -72,8 +72,9 @@ get_unitdid(mdl_base)
 
 ### Aggregation of Individual-level Child Penalties
 
-They can be aggregated to the `full`, `cage` (age at childbirth), and
-`cage_byear` (age at childbirth and birth year) levels:
+They can be aggregated to the `full`, `event` (year at event
+(treatment). Mainly for staggered DiD design), `event_age` (age at
+event. Mainly for child penalties) levels:
 
 ``` r
 summary(mdl_base) # default agg = "full"
