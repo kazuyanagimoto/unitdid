@@ -1,10 +1,10 @@
 ---
 title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
-date: 'February 19, 2024'
+date: 'February 20, 2024'
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Child Penalties with PSID}
+  %\VignetteIndexEntry{Individual-level Child Penalties with PSID}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
