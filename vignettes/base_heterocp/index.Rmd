@@ -1,7 +1,7 @@
 ---
 title: "Data Generation Process of base_heterocp"
 author: Kazuharu Yanagimoto
-date: '`r format(Sys.time(), "%B %d, %Y")`'
+date: 'February 20, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Data Generation Process of base_heterocp}
@@ -10,18 +10,10 @@ vignette: >
 ---
 
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE,
-  message = FALSE,
-  dev = "svg",
-  fig.ext = "svg"
-)
-```
 
-```{r setup}
+
+
+```r
 library(unitdid)
 library(dplyr)
 library(ggplot2)
@@ -52,7 +44,8 @@ f(a) = \begin{cases}
 \end{cases}
 $$
 
-```{r, fig.align='center', fig.width=6}
+
+```r
 base_heterocp |>
   distinct(id, .keep_all = TRUE) |>
   mutate(event_age = cyear - byear) |>
@@ -65,6 +58,11 @@ base_heterocp |>
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank())
 ```
+
+<div class="figure" style="text-align: center">
+<img src="figure/unnamed-chunk-2-1.svg" alt="plot of chunk unnamed-chunk-2"  />
+<p class="caption">plot of chunk unnamed-chunk-2</p>
+</div>
 
 ### 2. Generate Individual FE $\alpha_i$ and Time FE $\lambda_t$
 
@@ -109,7 +107,8 @@ To see its estimation properties,
 I simulate the data set 100 times and compare the true values with
 the mean, 2.5% quantile, and 97.5% quantile of the estimated values.
 
-```{r simulation}
+
+```r
 set.seed(1234)
 n_sim <- 100
 
@@ -136,7 +135,8 @@ if (!file.exists(path_sim)) {
 }
 ```
 
-```{r}
+
+```r
 val_true <- tibble(
   event_age = 25:34,
   tau1 = -1.2 + 0.3 * log(event_age),
@@ -168,7 +168,8 @@ df_plot <- simulated |>
 
 ### Mean of $\tau_{ik}$
 
-```{r, fig.align='center', fig.height=4.33, fig.width=7}
+
+```r
 df_plot |>
   ggplot(aes(x = rel_time, y = mean, ymin = mean_lci, ymax = mean_rci,
            color = lbl, shape = lbl)) +
@@ -185,9 +186,15 @@ df_plot |>
         legend.position = "bottom")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="figure/unnamed-chunk-4-1.svg" alt="plot of chunk unnamed-chunk-4"  />
+<p class="caption">plot of chunk unnamed-chunk-4</p>
+</div>
+
 ### Standard Deviation of $\tau_{ik}$
 
-```{r, fig.align='center', fig.height=4.33, fig.width=7}
+
+```r
 df_plot |>
   ggplot(aes(x = rel_time, y = sd, ymin = sd_lci, ymax = sd_rci,
            color = lbl, shape = lbl)) +
@@ -203,6 +210,11 @@ df_plot |>
         panel.grid.major.x = element_blank(),
         legend.position = "bottom")
 ```
+
+<div class="figure" style="text-align: center">
+<img src="figure/unnamed-chunk-5-1.svg" alt="plot of chunk unnamed-chunk-5"  />
+<p class="caption">plot of chunk unnamed-chunk-5</p>
+</div>
 
 
 
