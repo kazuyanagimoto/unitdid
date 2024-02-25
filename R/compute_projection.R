@@ -19,9 +19,9 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
 
   aggregated <- data |>
     dplyr::filter(dplyr::between(zz000k, k_min, k_max)) |>
-    dplyr::summarize(zz000mean = mean(zz000ytilde),
-                     zz000vartr = stats::var(zz000ytilde),
-                     zz000n = dplyr::n(),
+    dplyr::summarize(zz000mean = stats::weighted.mean(zz000ytilde, w = zz000w),
+                     zz000vartr = weighted.var(zz000ytilde, w = zz000w),
+                     zz000w = sum(zz000w),
                      .by = c(ename, "zz000k")) |>
     dplyr::arrange(!!rlang::sym(ename), zz000k)
 
@@ -66,7 +66,7 @@ varcont_ek <- function(data, iname, tname, ename, e, k) {
   v_ek <- data |>
     dplyr::filter(!!rlang::sym(ename) > e + k,
                   !!rlang::sym(tname) < e + k) |>
-    dplyr::summarize(v_ek = mean(zz000ytilde),
+    dplyr::summarize(v_ek = stats::weighted.mean(zz000ytilde, w = zz000w),
                      .by = !!rlang::sym(iname))
 
   if (nrow(v_ek) == 0) {

@@ -22,6 +22,7 @@ aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = N
   }
 
   if (normalized) {
+
     object$aggregated <- object$aggregated |>
       dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
       dplyr::left_join(object$yhat_agg,
@@ -56,15 +57,23 @@ aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = N
 
   if (object$info$compute_var) {
     result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000n, na.rm = na.rm),
-                       var = pmax(stats::weighted.mean(zz000var, w = zz000n, na.rm = na.rm), 0),
-                       n = sum(zz000n),
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
+                       var = pmax(stats::weighted.mean(zz000var, w = zz000w, na.rm = na.rm), 0),
+                       zz000w = sum(zz000w),
                        .by = by)
   } else {
     result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000n, na.rm = na.rm),
-                       n = sum(zz000n),
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
+                       zz000w = sum(zz000w),
                        .by = by)
+  }
+
+  if (is.null(object$info$wname)) {
+    result <- result |>
+      dplyr::rename("n" = zz000w)
+  } else {
+    result <- result |>
+      dplyr::rename("weight" = zz000w)
   }
 
   result |>

@@ -20,7 +20,8 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE,
   dev = "svg",
-  fig.ext = "svg"
+  fig.ext = "svg",
+  fig.cap = ""
 )
 ```
 
@@ -79,6 +80,7 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
+cpf_us01 |> glimpse()
 
 save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 ```
