@@ -10,6 +10,7 @@ unitdid(
   iname,
   tname,
   ename,
+  wname = NULL,
   ytildename = NULL,
   k_min = 0,
   k_max = 5,
@@ -30,6 +31,8 @@ unitdid(
 \item{tname}{Time variable}
 
 \item{ename}{Event timing variable}
+
+\item{wname}{Optional. The name of the weight variable.}
 
 \item{ytildename}{Optional. The name of the imputed outcome variable.
 If not provided, the function will use \code{paste0(yname, "_tilde")}.}

@@ -5,6 +5,7 @@
 #' @param iname Individual identifier
 #' @param tname Time variable
 #' @param ename Event timing variable
+#' @param wname Optional. The name of the weight variable.
 #' @param ytildename Optional. The name of the imputed outcome variable.
 #' If not provided, the function will use `paste0(yname, "_tilde")`.
 #' @param k_min Relative time to treatment at which treatment starts. Default is 0.
@@ -21,18 +22,19 @@
 #' @export
 #'
 unitdid <- function(data,
-                  yname,
-                  iname,
-                  tname,
-                  ename,
-                  ytildename = NULL,
-                  k_min = 0,
-                  k_max = 5,
-                  compute_var = FALSE,
-                  only_full_horizon = TRUE,
-                  by = NULL,
-                  bname = NULL,
-                  normalized = FALSE) {
+                    yname,
+                    iname,
+                    tname,
+                    ename,
+                    wname = NULL,
+                    ytildename = NULL,
+                    k_min = 0,
+                    k_max = 5,
+                    compute_var = FALSE,
+                    only_full_horizon = TRUE,
+                    by = NULL,
+                    bname = NULL,
+                    normalized = FALSE) {
 
   by_est <- c(by, bname) |> unique()
 
@@ -48,6 +50,13 @@ unitdid <- function(data,
                  data[[ename]] + k_max >= data[[tname]], ]
   data$zz000k <- data[[tname]] - data[[ename]]
 
+  # Weights
+  if (is.null(wname)) {
+    data$zz000w <- 1
+  } else {
+    data$zz000w <- data[[wname]]
+  }
+
   # Imputation
   data <- data |>
     dplyr::group_by(!!!rlang::syms(by_est)) %>%
@@ -59,6 +68,7 @@ unitdid <- function(data,
                iname = iname,
                tname = tname,
                ename = ename,
+               wname = wname,
                k_min = k_min,
                k_max = k_max,
                ytildename = ytildename,
@@ -73,7 +83,7 @@ unitdid <- function(data,
 
   # Denominator of Normalization
   object$yhat_agg <- data |>
-    dplyr::summarize(zz000yhat_agg = mean(zz000yhat),
+    dplyr::summarize(zz000yhat_agg = stats::weighted.mean(zz000yhat, w = zz000w),
                      .by = c(!!!rlang::syms(by_est), ename, tname))
 
   # Compute the projection

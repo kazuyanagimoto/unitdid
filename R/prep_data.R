@@ -9,7 +9,7 @@ prep_data <- function(data, yname, iname, tname, ename, k_min, normalized) {
   first_stage <- fixest::feols(
     stats::as.formula(paste0(yname, "~ 0 |", iname, " + ", tname)),
     data = not_yet_treated,
-    combine.quick = FALSE,
+    weights = ~zz000w,
     warn = FALSE,
     notes = FALSE)
 

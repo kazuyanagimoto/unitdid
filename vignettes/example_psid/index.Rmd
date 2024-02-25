@@ -1,7 +1,7 @@
 ---
 title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
-date: 'February 20, 2024'
+date: 'February 25, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Individual-level Child Penalties with PSID}
@@ -72,6 +72,7 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
+cpf_us01 |> glimpse()
 
 save(cp_psid, file = here("vignettes/example_psid/cp_psid.rds"))
 ```
@@ -130,10 +131,7 @@ df_plot |>
         legend.position = "bottom")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="figure/mean_cage-1.svg" alt="plot of chunk mean_cage"  />
-<p class="caption">plot of chunk mean_cage</p>
-</div>
+<img src="figure/mean_cage-1.svg" style="display: block; margin: auto;" />
 
 ### Standard Deviation of Child Penalties on Participation
 
@@ -156,10 +154,7 @@ df_plot |>
         legend.position = "bottom")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="figure/sd_cage-1.svg" alt="plot of chunk sd_cage"  />
-<p class="caption">plot of chunk sd_cage</p>
-</div>
+<img src="figure/sd_cage-1.svg" style="display: block; margin: auto;" />
 
 
 ## Scatter Plot with Covariates
@@ -195,10 +190,7 @@ p2 <- plot_scatter("Women")
 p1 / p2
 ```
 
-<div class="figure" style="text-align: center">
-<img src="figure/unnamed-chunk-2-1.svg" alt="plot of chunk unnamed-chunk-2"  />
-<p class="caption">plot of chunk unnamed-chunk-2</p>
-</div>
+<img src="figure/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" />
 
 ### On Binscatter
 
@@ -248,9 +240,6 @@ p2 <- plot_binsreg("Women")
 p1 / p2
 ```
 
-<div class="figure" style="text-align: center">
-<img src="figure/unnamed-chunk-5-1.svg" alt="plot of chunk unnamed-chunk-5"  />
-<p class="caption">plot of chunk unnamed-chunk-5</p>
-</div>
+<img src="figure/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" />
 
 ## References
