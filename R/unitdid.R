@@ -43,7 +43,7 @@ unitdid <- function(data,
   }
 
   # Sample Selection & Variable Creation
-  t_min <- data[[tname]] |> min()
+  t_min <- data[[tname]] |> min(na.rm = TRUE)
   data <- data[data[[ename]] + k_min > t_min &
                  data[[ename]] + k_max >= data[[tname]], ]
   data$zz000k <- data[[tname]] - data[[ename]]
@@ -72,11 +72,9 @@ unitdid <- function(data,
   class(object) <- "unitdid"
 
   # Denominator of Normalization
-  if (normalized) {
-    object$yhat_agg <- data |>
-      dplyr::summarize(zz000yhat_agg = mean(zz000yhat),
-                       .by = c(!!!rlang::syms(by_est), ename, tname))
-  }
+  object$yhat_agg <- data |>
+    dplyr::summarize(zz000yhat_agg = mean(zz000yhat),
+                     .by = c(!!!rlang::syms(by_est), ename, tname))
 
   # Compute the projection
   object <- compute_projection(object)

@@ -22,6 +22,7 @@ aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = N
   }
 
   if (normalized) {
+
     object$aggregated <- object$aggregated |>
       dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
       dplyr::left_join(object$yhat_agg,

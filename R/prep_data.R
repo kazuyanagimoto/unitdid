@@ -6,7 +6,6 @@ prep_data <- function(data, yname, iname, tname, ename, k_min, normalized) {
         fixest:::cpp_isConstant(not_yet_treated[[yname]])) {
     return(data[FALSE, ])
   }
-
   first_stage <- fixest::feols(
     stats::as.formula(paste0(yname, "~ 0 |", iname, " + ", tname)),
     data = not_yet_treated,
