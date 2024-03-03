@@ -3,6 +3,7 @@
 ## New Features
 
 - Support for `first_stage` argument for more parametric first stage estimation
+- Support for `by` argument for aggregation
 
 ## Bug Fixes
 

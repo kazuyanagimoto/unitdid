@@ -4,7 +4,7 @@
 \alias{aggregate_unitdid}
 \title{Aggregate the mean and variance of the estimated unit-level DiD effects}
 \usage{
-aggregate_unitdid(object, agg = "full", normalized = NULL)
+aggregate_unitdid(object, agg = "full", by = NULL, normalized = NULL)
 }
 \arguments{
 \item{object}{\code{unitdid} object}
@@ -16,6 +16,11 @@ all the options will separately aggregate by its group.
 The \code{event} option aggregates by the group of the event timing.
 The \code{event_age} option aggregates by the group of the age at the event timing.
 \code{event_age} requires the \code{bname} to be provided in the model.}
+
+\item{by}{A character vector of variables to aggregate separately by.
+Default is inherited from the \code{unitdid} object but you can override it here.
+You can estimate the unit-level DiD effects separately by \code{by} in \code{unitdid}
+but you can also aggregate the estimates by (higher-level) \code{by} here.}
 
 \item{normalized}{Logical. If \code{TRUE}, the function will normalize the aggregated mean and variance
 by the mean of the imputed outcome variable. Default is inherited from the \code{unitdid} object.}
