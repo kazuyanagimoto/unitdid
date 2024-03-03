@@ -79,6 +79,6 @@ varcont_ek <- function(data, iname, tname, ename, e, k) {
     dplyr::left_join(v_ek, by = c(iname)) |>
     dplyr::mutate(zz000epsilonhat = zz000ytilde - v_ek) |>
     dplyr::pull() |>
-    stats::var()
+    stats::var(na.rm = TRUE) # For unbalanced panels, na.rm = TRUE
 
 }

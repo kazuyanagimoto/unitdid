@@ -2,21 +2,32 @@
 #'
 #' @param data The dataframe containing all the variables
 #' @param yname Outcome variable
-#' @param iname Individual identifier
+#' @param iname Unit identifier
 #' @param tname Time variable
 #' @param ename Event timing variable
+#' @param first_stage Formula for Y(0).
+#'   Formula follows \code{\link[fixest:feols]{fixest::feols}}.
+#'   If not specified, unit (`iname`) and time (`tname`) fixed effects
+#'   will be used.
 #' @param wname Optional. The name of the weight variable.
 #' @param ytildename Optional. The name of the imputed outcome variable.
-#' If not provided, the function will use `paste0(yname, "_tilde")`.
-#' @param k_min Relative time to treatment at which treatment starts. Default is 0.
-#' @param k_max Relative time to treatment at which treatment ends. Default is 5.
-#' @param compute_var Logical. If TRUE, the function will compute the variance of the measurement errors and the variance of the individual-level child-penalties. Default is FALSE.
-#' @param only_full_horizon Logical. If TRUE, when you aggregate the individual child penalties, only the cohorts with full horizon (`k_min:k_max`) will be included. Default is TRUE.
-#' @param by A character vector of variables to estimate separately by. Default is NULL.
+#'   If not provided, the function will use `paste0(yname, "_tilde")`.
+#' @param k_min Relative time to treatment at which treatment starts.
+#'   Default is 0.
+#' @param k_max Relative time to treatment at which treatment ends.
+#'   Default is 5.
+#' @param compute_var Logical. If TRUE, the function will compute
+#'   the variance of the measurement errors and the variance of the unit-level
+#'   treatment effects. Default is FALSE.
+#' @param only_full_horizon Logical. If TRUE, when you aggregate
+#'   the individual child penalties, only the birth cohorts (`bname`)
+#'   with full horizon (`k_min:k_max`) will be included. Default is TRUE.
+#' @param by A character vector of variables to estimate separately by.
+#'   Default is NULL.
 #' @param bname Birth year variable. Default is NULL.
-#' Necessary to aggregate the estimates by age at event.
+#'   Necessary to aggregate the estimates by age at event.
 #' @param normalized Logical. If TRUE,
-#' the function will normalize the outcome variable scale. Default is FALSE.
+#'   the function will normalize the outcome variable scale. Default is FALSE.
 #'
 #' @return A `unitdid` class object.
 #' @export
@@ -26,6 +37,7 @@ unitdid <- function(data,
                     iname,
                     tname,
                     ename,
+                    first_stage = NULL,
                     wname = NULL,
                     ytildename = NULL,
                     k_min = 0,
@@ -60,7 +72,7 @@ unitdid <- function(data,
   # Imputation
   data <- data |>
     dplyr::group_by(!!!rlang::syms(by_est)) %>%
-    dplyr::do(prep_data(., yname, iname, tname, ename, k_min, normalized)) |>
+    dplyr::do(prep_data(., yname, iname, tname, first_stage, k_min)) |>
     dplyr::ungroup()
 
   # Construct the object
