@@ -8,14 +8,13 @@
 #' The `event` option aggregates by the group of the event timing.
 #' The `event_age` option aggregates by the group of the age at the event timing.
 #' `event_age` requires the `bname` to be provided in the model.
-#' @param na.rm Logical. If `TRUE`, remove `NA` values for the aggregation. The default is `TRUE`.
 #' @param normalized Logical. If `TRUE`, the function will normalize the aggregated mean and variance
 #' by the mean of the imputed outcome variable. Default is inherited from the `unitdid` object.
 #'
 #' @return A `tibble` with the aggregated mean and variance of the estimated unit-level DiD effects
 #' @export
 #'
-aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = NULL) {
+aggregate_unitdid <- function(object, agg = "full", normalized = NULL) {
 
   if (is.null(normalized)) {
     normalized <- object$info$normalized
@@ -57,13 +56,13 @@ aggregate_unitdid <- function(object, agg = "full", na.rm = TRUE, normalized = N
 
   if (object$info$compute_var) {
     result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
-                       var = pmax(stats::weighted.mean(zz000var, w = zz000w, na.rm = na.rm), 0),
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w),
+                       var = pmax(stats::weighted.mean(zz000var, w = zz000w), 0),
                        zz000w = sum(zz000w),
                        .by = by)
   } else {
     result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
+      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w),
                        zz000w = sum(zz000w),
                        .by = by)
   }
