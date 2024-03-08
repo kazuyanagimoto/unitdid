@@ -14,6 +14,7 @@
 #' Default is inherited from the `unitdid` object but you can override it here.
 #' You can estimate the unit-level DiD effects separately by `by` in `unitdid`
 #' but you can also aggregate the estimates by (higher-level) `by` here.
+#' You can use "rel_time" as the highest level of aggregation.
 #' @param normalized Logical. If `TRUE`, the function will normalize
 #' the aggregated mean and variance by the mean of the imputed outcome variable.
 #' Default is inherited from the `unitdid` object.
@@ -49,7 +50,9 @@ aggregate_unitdid <- function(object,
   # Higher Level Aggregation `by`
   if (is.null(by)) {
     by <- c(object$info$by, "zz000k")
-  } else {
+  } else if (by == "rel_time") {
+    by <- c("zz000k")
+  }  else {
     by <- c(by, "zz000k")
   }
 

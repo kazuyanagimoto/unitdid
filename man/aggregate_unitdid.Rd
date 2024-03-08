@@ -29,7 +29,8 @@ The default is \code{TRUE}.}
 \item{by}{A character vector of variables to aggregate separately by.
 Default is inherited from the \code{unitdid} object but you can override it here.
 You can estimate the unit-level DiD effects separately by \code{by} in \code{unitdid}
-but you can also aggregate the estimates by (higher-level) \code{by} here.}
+but you can also aggregate the estimates by (higher-level) \code{by} here.
+You can use "rel_time" as the highest level of aggregation.}
 
 \item{normalized}{Logical. If \code{TRUE}, the function will normalize
 the aggregated mean and variance by the mean of the imputed outcome variable.

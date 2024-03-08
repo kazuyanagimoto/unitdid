@@ -9,6 +9,7 @@
 
 - Bug when `data[[yname]]` includes `NA` values
 - Bug when variance estimation includes `NA` values (v0.0.3.1)
+- Bug when `by` does not have a higher category (v0.0.3.2)
 
 ## unitdid 0.0.2
 
