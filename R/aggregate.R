@@ -80,9 +80,13 @@ aggregate_unitdid <- function(object,
   }
 
   # Aggregation
+
+  if (!is.null(object$info$bname)) {
+    df_unitdid$zz000eage <- df_unitdid[[object$info$ename]] -
+      df_unitdid[[object$info$bname]]
+  }
+
   result <- df_unitdid |>
-    dplyr::mutate(zz000eage = !!rlang::sym(object$info$ename) -
-                    !!rlang::sym(object$info$bname)) |>
     dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
                                                  w = zz000w,
                                                  na.rm = na.rm),
