@@ -6,7 +6,7 @@
 #' If `by` is provided in the model,
 #' all the options will separately aggregate by its group.
 #' The `event` option aggregates by the group of the event timing.
-#' The `event_age` option aggregates by the group of the age at the event timing.
+#' The `event_age` option aggregates by the group of the age at the event time.
 #' `event_age` requires the `bname` to be provided in the model.
 #' @param na.rm Logical. If `TRUE`, remove `NA` values for the aggregation.
 #' The default is `TRUE`.
@@ -18,33 +18,27 @@
 #' @param normalized Logical. If `TRUE`, the function will normalize
 #' the aggregated mean and variance by the mean of the imputed outcome variable.
 #' Default is inherited from the `unitdid` object.
+#' @param only_full_horizon Logical. If TRUE, when you aggregate
+#'   the unit-level treatment effect, only the event year (`ename`)
+#'   with full horizon (`k_min:k_max`) will be included.
+#'   This is recommended in the case that you do not want to change
+#'   the composition of the event year (or age for the child penalties)
+#'   for each estimated point in `k_min:k_max`. Default is TRUE.
 #'
-#' @return A `tibble` with the aggregated mean and variance of the estimated unit-level DiD effects
+#' @return A `tibble` with the aggregated mean and variance of
+#'    the estimated unit-level DiD effects
 #' @export
 #'
 aggregate_unitdid <- function(object,
                               agg = "full",
                               na.rm = TRUE,
                               by = NULL,
-                              normalized = NULL) {
+                              normalized = NULL,
+                              only_full_horizon = TRUE) {
 
+  # Override the normalization option
   if (is.null(normalized)) {
     normalized <- object$info$normalized
-  }
-
-  if (normalized) {
-
-    object$aggregated <- object$aggregated |>
-      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
-      dplyr::left_join(object$yhat_agg,
-                       by = c(object$info$by_est, object$info$ename,
-                              "zz000t" = object$info$tname)) |>
-      dplyr::mutate(zz000mean = zz000mean / zz000yhat_agg)
-
-    if (object$info$compute_var) {
-      object$aggregated <- object$aggregated |>
-        dplyr::mutate(zz000var = zz000var / zz000yhat_agg^2)
-    }
   }
 
   # Higher Level Aggregation `by`
@@ -65,38 +59,111 @@ aggregate_unitdid <- function(object,
     if (is.null(object$info$bname)) {
       stop("You need to provide the bname in the model to aggregate by age at the event.")
     } else {
-      by <- c(by, "event_age")
-      object$aggregated <- object$aggregated |>
-        dplyr::mutate(event_age = !!rlang::sym(object$info$ename) -
-                        !!rlang::sym(object$info$bname))
+      by <- c(by, "zz000eage")
     }
   } else {
     stop("The `agg` argument must be one of `c('full', 'event', 'event_age')`.")
   }
 
+  ## Full horizon
+  df_unitdid <- get_unitdid(object, normalized = normalized, export = FALSE)
+
+  if (only_full_horizon) {
+    feasible_ek <- object$aggregated |>
+      dplyr::summarize(zz000k_max = max(zz000k),
+                       .by = c(object$info$by_est, object$info$ename)) |>
+      dplyr::filter(zz000k_max == object$info$k_max) |>
+      dplyr::select(-zz000k_max)
+
+    df_unitdid <- feasible_ek |>
+      dplyr::left_join(df_unitdid, by = c(object$info$by_est, object$info$ename))
+  }
+
   # Aggregation
-  if (object$info$compute_var) {
-    result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
-                       var = pmax(stats::weighted.mean(zz000var, w = zz000w, na.rm = na.rm), 0),
-                       zz000w = sum(zz000w),
-                       .by = by)
+  result <- df_unitdid |>
+    dplyr::mutate(zz000eage = !!rlang::sym(object$info$ename) -
+                    !!rlang::sym(object$info$bname)) |>
+    dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
+                                                 w = zz000w,
+                                                 na.rm = na.rm),
+                     zz000var = pmax(stats::weighted.mean(zz000var,
+                                                          w = zz000w,
+                                                          na.rm = na.rm), 0),
+                     zz000w = sum(zz000w),
+                     .by = by) |>
+    dplyr::arrange(!!!rlang::syms(by))
+
+  # Export
+  result$rel_time <- result$zz000k
+
+  ## Rename for weights
+  if (is.null(object$info$wname)) {
+    result$n <- result$zz000w
   } else {
-    result <- object$aggregated |>
-      dplyr::summarize(mean = stats::weighted.mean(zz000mean, w = zz000w, na.rm = na.rm),
-                       zz000w = sum(zz000w),
-                       .by = by)
+    result$weight <- result$zz000w
+  }
+
+  ## Rename for the variance
+  if (object$info$compute_var) {
+    result$var <- result$zz000var
+  }
+
+  ## Rename for agg="event_age"
+  if (agg == "event_age") {
+    result$event_age <- result$zz000eage
+  }
+
+  ## Drop the zz000 prefix
+  result |>
+    dplyr::select(-dplyr::starts_with("zz000"))
+}
+
+#' Get unit-level Difference-in-Differences estimates
+#'
+#' @param object `unitdid` object
+#' @param normalized Logical. If `TRUE`, the function will normalize them
+#' by the mean of the imputed outcome variable.
+#' Default is inherited from the `unitdid` object.
+#' @param export Logical. If `TRUE`, the function will not export the columns
+#' with the `zz000` prefix, which are used in the internal computation.
+#'
+#' @return A dataframe with a new column of the unit-level DiD estimates
+#' @export
+#'
+get_unitdid <- function(object, normalized = NULL, export = TRUE) {
+
+  if (is.null(normalized)) {
+    normalized <- object$info$normalized
+  }
+
+  if (normalized) {
+    object$data <- object$data |>
+      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
+      dplyr::left_join(object$yhat_agg,
+                       by = c(object$info$by_est, object$info$ename,
+                              "zz000t" = object$info$tname)) |>
+      dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
+                    zz000var = zz000var / zz000yhat_agg^2)
   }
 
   # Export
-  if (is.null(object$info$wname)) {
-    result <- result |>
-      dplyr::rename("n" = zz000w)
-  } else {
-    result <- result |>
-      dplyr::rename("weight" = zz000w)
+  df_export <- object$data |>
+    dplyr::filter(dplyr::between(zz000k, object$info$k_min, object$info$k_max))
+
+  if (export) {
+    df_export[[object$info$ytildename]] <- df_export$zz000ytilde
+
+    if (object$info$compute_var) {
+      df_export[[object$info$yvarname]] <- df_export$zz000var
+    }
+
+    if (!is.null(object$info$wname)) {
+      df_export[[object$info$wname]] <- df_export$zz000w
+    }
+
+    df_export <- df_export |>
+      dplyr::select(-dplyr::starts_with("zz000"))
   }
 
-  result |>
-    dplyr::rename("rel_time" = zz000k)
+  return(df_export)
 }

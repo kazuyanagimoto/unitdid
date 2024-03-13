@@ -12,6 +12,9 @@
 #' @param wname Optional. The name of the weight variable.
 #' @param ytildename Optional. The name of the imputed outcome variable.
 #'   If not provided, the function will use `paste0(yname, "_tilde")`.
+#' @param yvarname Optional. The name of the unit-level variance of
+#' the outcome variable. If not provided, the function will use
+#' `paste0(yname, "_var")`.
 #' @param k_min Relative time to treatment at which treatment starts.
 #'   Default is 0.
 #' @param k_max Relative time to treatment at which treatment ends.
@@ -19,9 +22,6 @@
 #' @param compute_var Logical. If TRUE, the function will compute
 #'   the variance of the measurement errors and the variance of the unit-level
 #'   treatment effects. Default is FALSE.
-#' @param only_full_horizon Logical. If TRUE, when you aggregate
-#'   the individual child penalties, only the birth cohorts (`bname`)
-#'   with full horizon (`k_min:k_max`) will be included. Default is TRUE.
 #' @param by A character vector of variables to estimate separately by.
 #'   Default is NULL.
 #' @param bname Birth year variable. Default is NULL.
@@ -40,10 +40,10 @@ unitdid <- function(data,
                     first_stage = NULL,
                     wname = NULL,
                     ytildename = NULL,
+                    yvarname = NULL,
                     k_min = 0,
                     k_max = 5,
                     compute_var = FALSE,
-                    only_full_horizon = TRUE,
                     by = NULL,
                     bname = NULL,
                     normalized = FALSE) {
@@ -54,6 +54,10 @@ unitdid <- function(data,
   ytildename <- ifelse(is.null(ytildename), paste0(yname, "_tilde"), ytildename)
   if (ytildename %in% colnames(data)) {
     stop("Please specify a different name in the data for `ytildename`")
+  }
+  yvarname <- ifelse(is.null(yvarname), paste0(yname, "_var"), yvarname)
+  if (yvarname %in% colnames(data)) {
+    stop("Please specify a different name in the data for `yvarname`")
   }
 
   # Sample Selection & Variable Creation
@@ -84,8 +88,8 @@ unitdid <- function(data,
                k_min = k_min,
                k_max = k_max,
                ytildename = ytildename,
+               yvarname = yvarname,
                compute_var = compute_var,
-               only_full_horizon = only_full_horizon,
                by = by,
                bname = bname,
                by_est = by_est,

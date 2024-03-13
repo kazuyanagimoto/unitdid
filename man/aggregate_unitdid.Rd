@@ -9,7 +9,8 @@ aggregate_unitdid(
   agg = "full",
   na.rm = TRUE,
   by = NULL,
-  normalized = NULL
+  normalized = NULL,
+  only_full_horizon = TRUE
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ One of \code{c("full", "event", "event_age")} and the default is \code{full}.
 If \code{by} is provided in the model,
 all the options will separately aggregate by its group.
 The \code{event} option aggregates by the group of the event timing.
-The \code{event_age} option aggregates by the group of the age at the event timing.
+The \code{event_age} option aggregates by the group of the age at the event time.
 \code{event_age} requires the \code{bname} to be provided in the model.}
 
 \item{na.rm}{Logical. If \code{TRUE}, remove \code{NA} values for the aggregation.
@@ -35,9 +36,17 @@ You can use "rel_time" as the highest level of aggregation.}
 \item{normalized}{Logical. If \code{TRUE}, the function will normalize
 the aggregated mean and variance by the mean of the imputed outcome variable.
 Default is inherited from the \code{unitdid} object.}
+
+\item{only_full_horizon}{Logical. If TRUE, when you aggregate
+the unit-level treatment effect, only the event year (\code{ename})
+with full horizon (\code{k_min:k_max}) will be included.
+This is recommended in the case that you do not want to change
+the composition of the event year (or age for the child penalties)
+for each estimated point in \code{k_min:k_max}. Default is TRUE.}
 }
 \value{
-A \code{tibble} with the aggregated mean and variance of the estimated unit-level DiD effects
+A \code{tibble} with the aggregated mean and variance of
+the estimated unit-level DiD effects
 }
 \description{
 Aggregate the mean and variance of the estimated unit-level DiD effects

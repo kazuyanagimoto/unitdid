@@ -1,3 +1,14 @@
+## unitdid 0.0.4
+
+### New Features
+
+- Support for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation
+
+### Bug Fixes
+
+- Measurement error (`zz000varcont` in the code) is not esimated with weights ([#11](https://github.com/kazuyanagimoto/unitdid/issues/11))
+
+
 ## unitdid 0.0.3
 
 ### New Features

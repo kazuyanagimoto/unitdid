@@ -1,7 +1,7 @@
 ---
 title: "Data Generation Process of base_heterocp"
 author: Kazuharu Yanagimoto
-date: 'March 03, 2024'
+date: 'March 13, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Data Generation Process of base_heterocp}
@@ -110,7 +110,7 @@ set.seed(1234)
 n_sim <- 100
 
 sim <- function() {
-  mdl_base <- gen_heterocp() |>
+  mdl_base <- gen_heterocp(size_cohort = 1000) |>
     unitdid(yname = "y",
           iname = "id",
           tname = "year",
