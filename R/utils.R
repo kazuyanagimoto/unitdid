@@ -1,7 +1,7 @@
 weighted.var <- function(x, w, na.rm = FALSE) {
   if (na.rm) {
-    x <- x[!is.na(x)]
     w <- w[!is.na(x)]
+    x <- x[!is.na(x)]
   }
 
   w <- w * length(w) / sum(w)

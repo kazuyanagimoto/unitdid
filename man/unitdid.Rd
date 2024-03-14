@@ -13,10 +13,10 @@ unitdid(
   first_stage = NULL,
   wname = NULL,
   ytildename = NULL,
+  yvarname = NULL,
   k_min = 0,
   k_max = 5,
   compute_var = FALSE,
-  only_full_horizon = TRUE,
   by = NULL,
   bname = NULL,
   normalized = FALSE
@@ -43,6 +43,10 @@ will be used.}
 \item{ytildename}{Optional. The name of the imputed outcome variable.
 If not provided, the function will use \code{paste0(yname, "_tilde")}.}
 
+\item{yvarname}{Optional. The name of the unit-level variance of
+the outcome variable. If not provided, the function will use
+\code{paste0(yname, "_var")}.}
+
 \item{k_min}{Relative time to treatment at which treatment starts.
 Default is 0.}
 
@@ -52,10 +56,6 @@ Default is 5.}
 \item{compute_var}{Logical. If TRUE, the function will compute
 the variance of the measurement errors and the variance of the unit-level
 treatment effects. Default is FALSE.}
-
-\item{only_full_horizon}{Logical. If TRUE, when you aggregate
-the individual child penalties, only the birth cohorts (\code{bname})
-with full horizon (\code{k_min:k_max}) will be included. Default is TRUE.}
 
 \item{by}{A character vector of variables to estimate separately by.
 Default is NULL.}
