@@ -1,7 +1,7 @@
 ---
 title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
-date: 'March 13, 2024'
+date: 'March 17, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Individual-level Child Penalties with PSID}
@@ -20,7 +20,6 @@ bibliography: references.bib
 library(unitdid)
 library(here)
 library(tidyverse)
-library(haven)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
@@ -48,6 +47,7 @@ To replicate this article, you need to run
 
 
 ```r
+library(haven)
 cpf_us01 <- read_dta(here("vignettes/example_psid/us_01.dta"))
 cpf_us03 <- read_dta(here("vignettes/example_psid/us_03_CPF.dta"))
 

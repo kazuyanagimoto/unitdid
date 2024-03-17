@@ -18,6 +18,8 @@
 #' @param normalized Logical. If `TRUE`, the function will normalize
 #' the aggregated mean and variance by the mean of the imputed outcome variable.
 #' Default is inherited from the `unitdid` object.
+#' @param allow_negative_var Logical. If `FALSE`, the function will return
+#' the estimated variance trimmed at zero. Default is `FALSE`.
 #' @param only_full_horizon Logical. If TRUE, when you aggregate
 #'   the unit-level treatment effect, only the event year (`ename`)
 #'   with full horizon (`k_min:k_max`) will be included.
@@ -34,6 +36,7 @@ aggregate_unitdid <- function(object,
                               na.rm = TRUE,
                               by = NULL,
                               normalized = NULL,
+                              allow_negative_var = FALSE,
                               only_full_horizon = TRUE) {
 
   # Override the normalization option
@@ -80,6 +83,7 @@ aggregate_unitdid <- function(object,
   }
 
   # Aggregation
+  var_min <- ifelse(allow_negative_var, -Inf, 0)
 
   if (!is.null(object$info$bname)) {
     df_unitdid$zz000eage <- df_unitdid[[object$info$ename]] -
@@ -92,7 +96,8 @@ aggregate_unitdid <- function(object,
                                                  na.rm = na.rm),
                      zz000var = pmax(stats::weighted.mean(zz000var,
                                                           w = zz000w,
-                                                          na.rm = na.rm), 0),
+                                                          na.rm = na.rm),
+                                     var_min),
                      zz000w = sum(zz000w),
                      .by = by) |>
     dplyr::arrange(!!!rlang::syms(by))

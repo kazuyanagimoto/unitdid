@@ -29,7 +29,6 @@ knitr::opts_chunk$set(
 library(unitdid)
 library(here)
 library(tidyverse)
-library(haven)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
@@ -56,6 +55,7 @@ To replicate this article, you need to run
 2.  Run the following code to create a dataset for the child penalties
 
 ```{r cleaning, eval=FALSE}
+library(haven)
 cpf_us01 <- read_dta(here("vignettes/example_psid/us_01.dta"))
 cpf_us03 <- read_dta(here("vignettes/example_psid/us_03_CPF.dta"))
 
