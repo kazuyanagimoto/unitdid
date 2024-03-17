@@ -3,6 +3,7 @@
 ### New Features
 
 - Support for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation
+- Add `allow_negative_var` option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).
 
 ### Bug Fixes
 

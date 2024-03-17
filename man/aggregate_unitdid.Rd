@@ -10,6 +10,7 @@ aggregate_unitdid(
   na.rm = TRUE,
   by = NULL,
   normalized = NULL,
+  allow_negative_var = FALSE,
   only_full_horizon = TRUE
 )
 }
@@ -36,6 +37,9 @@ You can use "rel_time" as the highest level of aggregation.}
 \item{normalized}{Logical. If \code{TRUE}, the function will normalize
 the aggregated mean and variance by the mean of the imputed outcome variable.
 Default is inherited from the \code{unitdid} object.}
+
+\item{allow_negative_var}{Logical. If \code{FALSE}, the function will return
+the estimated variance trimmed at zero. Default is \code{FALSE}.}
 
 \item{only_full_horizon}{Logical. If TRUE, when you aggregate
 the unit-level treatment effect, only the event year (\code{ename})
