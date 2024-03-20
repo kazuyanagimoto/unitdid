@@ -90,20 +90,38 @@ aggregate_unitdid <- function(object,
       df_unitdid[[object$info$bname]]
   }
 
-  result <- df_unitdid |>
-    dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
-                                                 w = zz000w,
-                                                 na.rm = na.rm),
-                     zz000var = pmax(stats::weighted.mean(zz000var,
-                                                          w = zz000w,
-                                                          na.rm = na.rm),
-                                     var_min),
-                     zz000w = sum(zz000w),
-                     .by = by) |>
-    dplyr::arrange(!!!rlang::syms(by))
+  if (object$info$compute_varcov == "cov") {
+    result <- df_unitdid |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
+                                                  w = zz000w,
+                                                  na.rm = na.rm),
+                      zz000cov = stats::weighted.mean(zz000cov,
+                                                      w = zz000w,
+                                                      na.rm = na.rm),
+                      zz000w = sum(zz000w),
+                      .by = c(by, zz000l)) |>
+      dplyr::mutate(zz000cov = ifelse(zz000k == zz000l,
+                                      pmax(zz000cov, var_min), zz000cov)) |>
+      dplyr::arrange(!!!rlang::syms(by), zz000l)
+  } else {
+    result <- df_unitdid |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
+                                                  w = zz000w,
+                                                  na.rm = na.rm),
+                      zz000var = pmax(stats::weighted.mean(zz000var,
+                                                            w = zz000w,
+                                                            na.rm = na.rm),
+                                      var_min),
+                      zz000w = sum(zz000w),
+                      .by = by) |>
+      dplyr::arrange(!!!rlang::syms(by))
+  }
 
   # Export
   result$rel_time <- result$zz000k
+  if (object$info$compute_varcov == "cov") {
+    result$rel_time2 <- result$zz000l
+  }
 
   ## Rename for weights
   if (is.null(object$info$wname)) {
@@ -113,8 +131,10 @@ aggregate_unitdid <- function(object,
   }
 
   ## Rename for the variance
-  if (object$info$compute_var) {
+  if (object$info$compute_varcov == "var") {
     result$var <- result$zz000var
+  } else if (object$info$compute_varcov == "cov") {
+    result$cov <- result$zz000cov
   }
 
   ## Rename for agg="event_age"
@@ -146,24 +166,42 @@ get_unitdid <- function(object, normalized = NULL, export = TRUE) {
   }
 
   if (normalized) {
-    object$data <- object$data |>
-      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
-      dplyr::left_join(object$yhat_agg,
-                       by = c(object$info$by_est, object$info$ename,
-                              "zz000t" = object$info$tname)) |>
-      dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
-                    zz000var = zz000var / zz000yhat_agg^2)
+    if (object$info$compute_varcov == "cov") {
+      object$data <- object$data |>
+        dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k,
+                      zz000s = !!rlang::sym(object$info$ename) + zz000l) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000t" = object$info$tname)) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000s" = object$info$tname),
+                         suffix = c("", "_s")) |>
+        dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
+                      zz000cov = zz000cov / (zz000yhat_agg * zz000yhat_agg_s))
+
+    } else {
+      object$data <- object$data |>
+        dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000t" = object$info$tname)) |>
+        dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
+                      zz000var = zz000var / zz000yhat_agg^2)
+    }
   }
 
   # Export
-  df_export <- object$data |>
-    dplyr::filter(dplyr::between(zz000k, object$info$k_min, object$info$k_max))
+  df_export <- object$data
 
   if (export) {
     df_export[[object$info$ytildename]] <- df_export$zz000ytilde
 
-    if (object$info$compute_var) {
+    if (object$info$compute_varcov == "var") {
       df_export[[object$info$yvarname]] <- df_export$zz000var
+    } else if (object$info$compute_varcov == "cov") {
+      df_export[[object$info$kprimename]] <- df_export$zz000l
+      df_export[[object$info$ycovname]] <- df_export$zz000cov
     }
 
     if (!is.null(object$info$wname)) {

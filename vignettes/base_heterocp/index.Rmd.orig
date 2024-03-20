@@ -121,7 +121,7 @@ sim <- function() {
           tname = "year",
           ename = "cyear",
           bname = "byear",
-          compute_var = TRUE)
+          compute_varcov = "var")
 
   summary(mdl_base, agg = "event_age")
 }

@@ -14,9 +14,11 @@ unitdid(
   wname = NULL,
   ytildename = NULL,
   yvarname = NULL,
+  ycovname = NULL,
+  kprimename = "kprime",
   k_min = 0,
   k_max = 5,
-  compute_var = FALSE,
+  compute_varcov = "none",
   by = NULL,
   bname = NULL,
   normalized = FALSE
@@ -47,15 +49,24 @@ If not provided, the function will use \code{paste0(yname, "_tilde")}.}
 the outcome variable. If not provided, the function will use
 \code{paste0(yname, "_var")}.}
 
+\item{ycovname}{Optional. The name of the unit-level covariance of
+the outcome variable. If not provided, the function will use
+\code{paste0(yname, "_cov")}.}
+
+\item{kprimename}{Optional. The name of the relative time to treatment.
+This is used for the second column name of the relative time of
+the unit-level covariance estimation. Default is "kprime".}
+
 \item{k_min}{Relative time to treatment at which treatment starts.
 Default is 0.}
 
 \item{k_max}{Relative time to treatment at which treatment ends.
 Default is 5.}
 
-\item{compute_var}{Logical. If TRUE, the function will compute
-the variance of the measurement errors and the variance of the unit-level
-treatment effects. Default is FALSE.}
+\item{compute_varcov}{One of c("none", "var", "cov") and Default is "none".
+If "var", the function will estimate the unit-level variance of the outcome
+variable. If "cov", the function will estimate the unit-level covariance of
+the outcome variable for each pair within \code{k_min:k_max}.}
 
 \item{by}{A character vector of variables to estimate separately by.
 Default is NULL.}

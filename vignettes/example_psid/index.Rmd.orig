@@ -103,7 +103,7 @@ mdl_particip <- cp_psid |>
         ename = "cyear",
         bname = "byear",
         by = c("gender"),
-        compute_var = TRUE)
+        compute_varcov = "var")
 ```
 
 ### Mean of Child Penalties on Participation

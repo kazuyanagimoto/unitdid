@@ -98,7 +98,7 @@ Since the individual-level child penalties are estimated with measurement errors
 the variance of the `y_tilde` is not equal to the variance of
 the individual-level child penalties.
 
-The `compute_var` option of the `unitdid` estimates the variance of
+The `compute_varcov = "var"` option of the `unitdid` estimates the variance of
 the measurement errors and the variance of the individual-level child penalties
 by subtracting the variance of the measurement errors from the variance of `y_tilde`
 
@@ -109,7 +109,7 @@ mdl_base <- base_heterocp |>
         tname = "year",
         ename = "cyear",
         bname = "byear",
-        compute_var = TRUE)
+        compute_varcov = "var")
 
 sum_eage <- summary(mdl_base, agg = "event_age")
 
