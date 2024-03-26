@@ -31,7 +31,7 @@ compute_projection <- function(object) {
                               object$info$ename,
                               "zz000k")) |>
       dplyr::left_join(object$data |>
-                         dplyr::select(!!rlang::sym(object$inf$iname),
+                         dplyr::select(!!rlang::sym(object$info$iname),
                                        zz000l = zz000k,
                                        zz000ytilde_l = zz000ytilde),
                        by = c(object$info$iname, "zz000l")) |>
