@@ -15,13 +15,20 @@
 #' @param yvarname Optional. The name of the unit-level variance of
 #' the outcome variable. If not provided, the function will use
 #' `paste0(yname, "_var")`.
+#' @param ycovname Optional. The name of the unit-level covariance of
+#' the outcome variable. If not provided, the function will use
+#' `paste0(yname, "_cov")`.
+#' @param kprimename Optional. The name of the relative time to treatment.
+#' This is used for the second column name of the relative time of
+#' the unit-level covariance estimation. Default is "kprime".
 #' @param k_min Relative time to treatment at which treatment starts.
 #'   Default is 0.
 #' @param k_max Relative time to treatment at which treatment ends.
 #'   Default is 5.
-#' @param compute_var Logical. If TRUE, the function will compute
-#'   the variance of the measurement errors and the variance of the unit-level
-#'   treatment effects. Default is FALSE.
+#' @param compute_varcov One of c("none", "var", "cov") and Default is "none".
+#'  If "var", the function will estimate the unit-level variance of the outcome
+#'  variable. If "cov", the function will estimate the unit-level covariance of
+#'  the outcome variable for each pair within `k_min:k_max`.
 #' @param by A character vector of variables to estimate separately by.
 #'   Default is NULL.
 #' @param bname Birth year variable. Default is NULL.
@@ -41,9 +48,11 @@ unitdid <- function(data,
                     wname = NULL,
                     ytildename = NULL,
                     yvarname = NULL,
+                    ycovname = NULL,
+                    kprimename = "kprime",
                     k_min = 0,
                     k_max = 5,
-                    compute_var = FALSE,
+                    compute_varcov = "none",
                     by = NULL,
                     bname = NULL,
                     normalized = FALSE) {
@@ -58,6 +67,17 @@ unitdid <- function(data,
   yvarname <- ifelse(is.null(yvarname), paste0(yname, "_var"), yvarname)
   if (yvarname %in% colnames(data)) {
     stop("Please specify a different name in the data for `yvarname`")
+  }
+  ycovname <- ifelse(is.null(ycovname), paste0(yname, "_cov"), ycovname)
+  if (ycovname %in% colnames(data)) {
+    stop("Please specify a different name in the data for `ycovname`")
+  }
+  if (kprimename %in% colnames(data) && compute_varcov == "cov") {
+    stop("Please specify a different name in the data for `kprimename`")
+  }
+
+  if (!(compute_varcov %in% c("none", "var", "cov"))) {
+    stop("`compute_varcov` must be one of c('none', 'var', 'cov')")
   }
 
   # Sample Selection & Variable Creation
@@ -89,7 +109,9 @@ unitdid <- function(data,
                k_max = k_max,
                ytildename = ytildename,
                yvarname = yvarname,
-               compute_var = compute_var,
+               ycovname = ycovname,
+               kprimename = kprimename,
+               compute_varcov = compute_varcov,
                by = by,
                bname = bname,
                by_est = by_est,

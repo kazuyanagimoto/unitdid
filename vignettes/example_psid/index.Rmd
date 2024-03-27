@@ -1,7 +1,7 @@
 ---
 title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
-date: 'March 17, 2024'
+date: 'March 27, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Individual-level Child Penalties with PSID}
@@ -96,7 +96,7 @@ mdl_particip <- cp_psid |>
         ename = "cyear",
         bname = "byear",
         by = c("gender"),
-        compute_var = TRUE)
+        compute_varcov = "var")
 ```
 
 ### Mean of Child Penalties on Participation

@@ -4,7 +4,12 @@
 \alias{get_unitdid}
 \title{Get unit-level Difference-in-Differences estimates}
 \usage{
-get_unitdid(object, normalized = NULL, export = TRUE)
+get_unitdid(
+  object,
+  normalized = NULL,
+  export = TRUE,
+  only_full_horizon = FALSE
+)
 }
 \arguments{
 \item{object}{\code{unitdid} object}
@@ -15,6 +20,13 @@ Default is inherited from the \code{unitdid} object.}
 
 \item{export}{Logical. If \code{TRUE}, the function will not export the columns
 with the \code{zz000} prefix, which are used in the internal computation.}
+
+\item{only_full_horizon}{Logical. If TRUE, only the event year (\code{ename})
+with full horizon (\code{k_min:k_max}) will be exported.
+This is recommended in the case that you do not want to change
+the composition of the event year (or age for the child penalties)
+for each estimated point in \code{k_min:k_max} for aggregation.
+Default is FALSE.}
 }
 \value{
 A dataframe with a new column of the unit-level DiD estimates

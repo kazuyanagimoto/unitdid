@@ -68,21 +68,10 @@ aggregate_unitdid <- function(object,
     stop("The `agg` argument must be one of `c('full', 'event', 'event_age')`.")
   }
 
-  ## Full horizon
-  df_unitdid <- get_unitdid(object, normalized = normalized, export = FALSE)
+  ## Aggregation
+  df_unitdid <- get_unitdid(object, normalized = normalized, export = FALSE,
+                            only_full_horizon = only_full_horizon)
 
-  if (only_full_horizon) {
-    feasible_ek <- object$aggregated |>
-      dplyr::summarize(zz000k_max = max(zz000k),
-                       .by = c(object$info$by_est, object$info$ename)) |>
-      dplyr::filter(zz000k_max == object$info$k_max) |>
-      dplyr::select(-zz000k_max)
-
-    df_unitdid <- feasible_ek |>
-      dplyr::left_join(df_unitdid, by = c(object$info$by_est, object$info$ename))
-  }
-
-  # Aggregation
   var_min <- ifelse(allow_negative_var, -Inf, 0)
 
   if (!is.null(object$info$bname)) {
@@ -90,20 +79,38 @@ aggregate_unitdid <- function(object,
       df_unitdid[[object$info$bname]]
   }
 
-  result <- df_unitdid |>
-    dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
-                                                 w = zz000w,
-                                                 na.rm = na.rm),
-                     zz000var = pmax(stats::weighted.mean(zz000var,
-                                                          w = zz000w,
-                                                          na.rm = na.rm),
-                                     var_min),
-                     zz000w = sum(zz000w),
-                     .by = by) |>
-    dplyr::arrange(!!!rlang::syms(by))
+  if (object$info$compute_varcov == "cov") {
+    result <- df_unitdid |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
+                                                  w = zz000w,
+                                                  na.rm = na.rm),
+                      zz000cov = stats::weighted.mean(zz000cov,
+                                                      w = zz000w,
+                                                      na.rm = na.rm),
+                      zz000w = sum(zz000w),
+                      .by = c(by, zz000l)) |>
+      dplyr::mutate(zz000cov = ifelse(zz000k == zz000l,
+                                      pmax(zz000cov, var_min), zz000cov)) |>
+      dplyr::arrange(!!!rlang::syms(by), zz000l)
+  } else {
+    result <- df_unitdid |>
+      dplyr::summarize(mean = stats::weighted.mean(zz000ytilde,
+                                                  w = zz000w,
+                                                  na.rm = na.rm),
+                      zz000var = pmax(stats::weighted.mean(zz000var,
+                                                            w = zz000w,
+                                                            na.rm = na.rm),
+                                      var_min),
+                      zz000w = sum(zz000w),
+                      .by = by) |>
+      dplyr::arrange(!!!rlang::syms(by))
+  }
 
   # Export
   result$rel_time <- result$zz000k
+  if (object$info$compute_varcov == "cov") {
+    result$rel_time2 <- result$zz000l
+  }
 
   ## Rename for weights
   if (is.null(object$info$wname)) {
@@ -113,8 +120,10 @@ aggregate_unitdid <- function(object,
   }
 
   ## Rename for the variance
-  if (object$info$compute_var) {
+  if (object$info$compute_varcov == "var") {
     result$var <- result$zz000var
+  } else if (object$info$compute_varcov == "cov") {
+    result$cov <- result$zz000cov
   }
 
   ## Rename for agg="event_age"
@@ -135,35 +144,72 @@ aggregate_unitdid <- function(object,
 #' Default is inherited from the `unitdid` object.
 #' @param export Logical. If `TRUE`, the function will not export the columns
 #' with the `zz000` prefix, which are used in the internal computation.
-#'
+#' @param only_full_horizon Logical. If TRUE, only the event year (`ename`)
+#'   with full horizon (`k_min:k_max`) will be exported.
+#'   This is recommended in the case that you do not want to change
+#'   the composition of the event year (or age for the child penalties)
+#'   for each estimated point in `k_min:k_max` for aggregation.
+#'   Default is FALSE.
 #' @return A dataframe with a new column of the unit-level DiD estimates
 #' @export
 #'
-get_unitdid <- function(object, normalized = NULL, export = TRUE) {
+get_unitdid <- function(object, normalized = NULL, export = TRUE,
+                        only_full_horizon = FALSE) {
 
   if (is.null(normalized)) {
     normalized <- object$info$normalized
   }
 
   if (normalized) {
-    object$data <- object$data |>
-      dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
-      dplyr::left_join(object$yhat_agg,
-                       by = c(object$info$by_est, object$info$ename,
-                              "zz000t" = object$info$tname)) |>
-      dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
-                    zz000var = zz000var / zz000yhat_agg^2)
+    if (object$info$compute_varcov == "cov") {
+      object$data <- object$data |>
+        dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k,
+                      zz000s = !!rlang::sym(object$info$ename) + zz000l) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000t" = object$info$tname)) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000s" = object$info$tname),
+                         suffix = c("", "_s")) |>
+        dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
+                      zz000cov = zz000cov / (zz000yhat_agg * zz000yhat_agg_s))
+
+    } else {
+      object$data <- object$data |>
+        dplyr::mutate(zz000t = !!rlang::sym(object$info$ename) + zz000k) |>
+        dplyr::left_join(object$yhat_agg,
+                         by = c(object$info$by_est, object$info$ename,
+                                "zz000t" = object$info$tname)) |>
+        dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
+                      zz000var = zz000var / zz000yhat_agg^2)
+    }
+  }
+
+  # Only full horizon
+  if (only_full_horizon) {
+    feasible_ek <- object$aggregated |>
+      dplyr::summarize(zz000k_max = max(zz000k),
+                       .by = c(object$info$by_est, object$info$ename)) |>
+      dplyr::filter(zz000k_max == object$info$k_max) |>
+      dplyr::select(-zz000k_max)
+
+    object$data <- feasible_ek |>
+      dplyr::left_join(object$data,
+                       by = c(object$info$by_est, object$info$ename))
   }
 
   # Export
-  df_export <- object$data |>
-    dplyr::filter(dplyr::between(zz000k, object$info$k_min, object$info$k_max))
+  df_export <- object$data
 
   if (export) {
     df_export[[object$info$ytildename]] <- df_export$zz000ytilde
 
-    if (object$info$compute_var) {
+    if (object$info$compute_varcov == "var") {
       df_export[[object$info$yvarname]] <- df_export$zz000var
+    } else if (object$info$compute_varcov == "cov") {
+      df_export[[object$info$kprimename]] <- df_export$zz000l
+      df_export[[object$info$ycovname]] <- df_export$zz000cov
     }
 
     if (!is.null(object$info$wname)) {

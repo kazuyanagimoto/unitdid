@@ -5,11 +5,14 @@ compute_projection <- function(object) {
     dplyr::do(projection_group(., object$info$iname, object$info$tname,
                                object$info$ename,
                                object$info$k_min, object$info$k_max,
-                               object$info$compute_var)) |>
+                               object$info$compute_varcov)) |>
     dplyr::ungroup()
 
-  # Individual Level Variance
-  if (object$info$compute_var) {
+  # Individual Level Variance-Covariance
+  object$data <- object$data |>
+    dplyr::filter(dplyr::between(zz000k, object$info$k_min, object$info$k_max))
+
+  if (object$info$compute_varcov == "var") {
     object$data <- object$aggregated |>
       dplyr::select(object$info$by_est, object$info$ename, zz000k,
                     zz000mean, zz000varcont) |>
@@ -18,6 +21,23 @@ compute_projection <- function(object) {
                               object$info$ename,
                               "zz000k")) |>
       dplyr::mutate(zz000var = (zz000ytilde - zz000mean)^2 - zz000varcont)
+
+  } else if (object$info$compute_varcov == "cov") {
+
+    object$data <- object$aggregated |>
+      dplyr::select(-zz000w) |>
+      dplyr::left_join(object$data,
+                       by = c(object$info$by_est,
+                              object$info$ename,
+                              "zz000k")) |>
+      dplyr::left_join(object$data |>
+                         dplyr::select(!!rlang::sym(object$info$iname),
+                                       zz000l = zz000k,
+                                       zz000ytilde_l = zz000ytilde),
+                       by = c(object$info$iname, "zz000l")) |>
+      dplyr::mutate(zz000cov = (zz000ytilde - zz000mean) *
+                    (zz000ytilde_l - zz000mean_l) - zz000covcont)
+
   } else {
     object$data <- object$data |>
       dplyr::mutate(zz000var = NA_real_) # For its convenience in the summary
@@ -27,7 +47,7 @@ compute_projection <- function(object) {
 }
 
 projection_group <- function(data, iname, tname, ename, k_min, k_max,
-                             compute_var) {
+                             compute_varcov) {
 
   aggregated <- data |>
     dplyr::filter(dplyr::between(zz000k, k_min, k_max)) |>
@@ -40,35 +60,80 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
     return(aggregated)
   }
 
-  if (compute_var) {
+  if (compute_varcov == "var") {
+    covcont <- covcont_group(data, iname, tname, ename, k_min, k_max,
+                            compute_varcov)
     aggregated <- aggregated |>
-      dplyr::mutate(zz000varcont = purrr::map2_dbl(
-        !!rlang::sym(ename), zz000k,
-        ~ varcont_ek(data, iname, tname, ename, .x, .y)))
+      dplyr::left_join(covcont, by = c(ename, "zz000k"))
+  }
+  if (compute_varcov == "cov") {
+    covcont <- covcont_group(data, iname, tname, ename, k_min, k_max,
+                             compute_varcov)
+    aggregated <- aggregated |>
+      dplyr::left_join(covcont, by = c(ename, "zz000k")) |>
+      dplyr::left_join(aggregated |>
+                         dplyr::select(!!rlang::sym(ename),
+                                       zz000l = zz000k,
+                                       zz000mean_l = zz000mean),
+                       by = c(ename, "zz000l"))
   }
 
   return(aggregated)
 }
 
-varcont_ek <- function(data, iname, tname, ename, e, k) {
+covcont_group <- function(data, iname, tname, ename, k_min, k_max,
+                          compute_varcov) {
 
-  v_ek <- data |>
+  feasible_ek <- data |>
+    dplyr::filter(dplyr::between(zz000k, k_min, k_max)) |>
+    dplyr::distinct(!!rlang::sym(ename), zz000k) |>
+    dplyr::arrange(!!rlang::sym(ename), zz000k)
+
+  altepsilon <- purrr::map2(feasible_ek[[ename]], feasible_ek$zz000k,
+                            ~ altepsilon_ek(data, iname, tname, ename,
+                                            .x, .y)) |>
+    dplyr::bind_rows()
+
+  if (compute_varcov == "var") {
+    return(altepsilon |>
+             dplyr::summarize(zz000varcont = weighted.var(zz000altepsilon,
+                                                          w = zz000w,
+                                                          na.rm = TRUE),
+                              .by = c(ename, "zz000k")))
+  }
+
+  replicate(k_max - k_min + 1, feasible_ek, simplify = FALSE) |>
+    dplyr::bind_rows() |>
+    dplyr::mutate(zz000l = rep(k_min:k_max, each = nrow(feasible_ek))) |>
+    dplyr::filter(zz000k >= zz000l) |>
+    dplyr::left_join(altepsilon, by = c(ename, "zz000k")) |>
+    dplyr::left_join(altepsilon |>
+                       dplyr::select(!!rlang::sym(iname),
+                                     !!rlang::sym(ename),
+                                     zz000l = zz000k,
+                                     zz000altepsilon_l = zz000altepsilon),
+                     by = c(iname, ename, "zz000l")) |>
+    dplyr::summarize(zz000covcont = weighted.cov(zz000altepsilon,
+                                                 zz000altepsilon_l,
+                                                 w = zz000w,
+                                                 na.rm = TRUE),
+                     .by = c(ename, "zz000k", "zz000l"))
+}
+
+altepsilon_ek <- function(data, iname, tname, ename, e, k) {
+
+  mean_epsilon <- data |>
     dplyr::filter(!!rlang::sym(ename) > e + k,
                   !!rlang::sym(tname) < e + k) |>
-    dplyr::summarize(v_ek = stats::weighted.mean(zz000ytilde, w = zz000w),
+    dplyr::summarize(mean_epsilon = stats::weighted.mean(zz000ytilde,
+                                                         w = zz000w),
                      .by = !!rlang::sym(iname))
-
-  if (nrow(v_ek) == 0) {
-    return(NA_real_)
-  }
 
   data |>
     dplyr::filter(!!rlang::sym(ename) > e + k,
                   !!rlang::sym(tname) == e + k) |>
-    dplyr::left_join(v_ek, by = c(iname)) |>
-    dplyr::mutate(zz000epsilonhat = zz000ytilde - v_ek) |>
-    dplyr::summarize(zz000varcont = weighted.var(zz000epsilonhat,
-                                                 w = zz000w,
-                                                 na.rm = TRUE)) |>
-    dplyr::pull(zz000varcont) # Note: for unbalanced panels, na.rm = TRUE
+    dplyr::left_join(mean_epsilon, by = c(iname)) |>
+    dplyr::mutate(zz000altepsilon = zz000ytilde - mean_epsilon) |>
+    dplyr::select(!!rlang::sym(iname), zz000altepsilon, zz000w) |>
+    dplyr::mutate(!!rlang::sym(ename) := e, zz000k = k)
 }

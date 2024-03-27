@@ -1,7 +1,7 @@
 ---
 title: "Data Generation Process of base_heterocp"
 author: Kazuharu Yanagimoto
-date: 'March 17, 2024'
+date: 'March 27, 2024'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Data Generation Process of base_heterocp}
@@ -116,7 +116,7 @@ sim <- function() {
           tname = "year",
           ename = "cyear",
           bname = "byear",
-          compute_var = TRUE)
+          compute_varcov = "var")
 
   summary(mdl_base, agg = "event_age")
 }
