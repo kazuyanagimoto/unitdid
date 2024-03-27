@@ -68,21 +68,10 @@ aggregate_unitdid <- function(object,
     stop("The `agg` argument must be one of `c('full', 'event', 'event_age')`.")
   }
 
-  ## Full horizon
-  df_unitdid <- get_unitdid(object, normalized = normalized, export = FALSE)
+  ## Aggregation
+  df_unitdid <- get_unitdid(object, normalized = normalized, export = FALSE,
+                            only_full_horizon = only_full_horizon)
 
-  if (only_full_horizon) {
-    feasible_ek <- object$aggregated |>
-      dplyr::summarize(zz000k_max = max(zz000k),
-                       .by = c(object$info$by_est, object$info$ename)) |>
-      dplyr::filter(zz000k_max == object$info$k_max) |>
-      dplyr::select(-zz000k_max)
-
-    df_unitdid <- feasible_ek |>
-      dplyr::left_join(df_unitdid, by = c(object$info$by_est, object$info$ename))
-  }
-
-  # Aggregation
   var_min <- ifelse(allow_negative_var, -Inf, 0)
 
   if (!is.null(object$info$bname)) {
@@ -155,11 +144,17 @@ aggregate_unitdid <- function(object,
 #' Default is inherited from the `unitdid` object.
 #' @param export Logical. If `TRUE`, the function will not export the columns
 #' with the `zz000` prefix, which are used in the internal computation.
-#'
+#' @param only_full_horizon Logical. If TRUE, only the event year (`ename`)
+#'   with full horizon (`k_min:k_max`) will be exported.
+#'   This is recommended in the case that you do not want to change
+#'   the composition of the event year (or age for the child penalties)
+#'   for each estimated point in `k_min:k_max` for aggregation.
+#'   Default is FALSE.
 #' @return A dataframe with a new column of the unit-level DiD estimates
 #' @export
 #'
-get_unitdid <- function(object, normalized = NULL, export = TRUE) {
+get_unitdid <- function(object, normalized = NULL, export = TRUE,
+                        only_full_horizon = FALSE) {
 
   if (is.null(normalized)) {
     normalized <- object$info$normalized
@@ -189,6 +184,19 @@ get_unitdid <- function(object, normalized = NULL, export = TRUE) {
         dplyr::mutate(zz000ytilde = zz000ytilde / zz000yhat_agg,
                       zz000var = zz000var / zz000yhat_agg^2)
     }
+  }
+
+  # Only full horizon
+  if (only_full_horizon) {
+    feasible_ek <- object$aggregated |>
+      dplyr::summarize(zz000k_max = max(zz000k),
+                       .by = c(object$info$by_est, object$info$ename)) |>
+      dplyr::filter(zz000k_max == object$info$k_max) |>
+      dplyr::select(-zz000k_max)
+
+    object$data <- feasible_ek |>
+      dplyr::left_join(object$data,
+                       by = c(object$info$by_est, object$info$ename))
   }
 
   # Export

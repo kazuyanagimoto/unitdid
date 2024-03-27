@@ -3,6 +3,7 @@
 ### New Features
 
 - Support for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix
+- Add `only_full_horizon` option for `get_unitdid()`
 
 ## unitdid 0.0.4
 
