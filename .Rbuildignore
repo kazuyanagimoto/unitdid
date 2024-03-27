@@ -1,7 +1,9 @@
+^renv$
+^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^README\.Rmd$
+^README\.qmd$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
@@ -11,3 +13,5 @@
 ^doc$
 ^Meta$
 ^\.vscode$
+^altdoc$
+^_quarto$
