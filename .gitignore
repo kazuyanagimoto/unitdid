@@ -13,4 +13,3 @@ altdoc/freeze.rds
 _quarto/*
 !_quarto/_freeze/
 *_files/
-^_quarto$

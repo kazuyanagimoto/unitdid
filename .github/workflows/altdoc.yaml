@@ -32,19 +32,18 @@ jobs:
       - name: Bootstrap
         run: ./run.sh bootstrap
 
-      # - name: Install Mkdocs and its dependencies
-      #   run: |
-      #     python3 -m pip install --upgrade pip     # install pip
-      #     python3 -m pip install mkdocs            # install mkdocs
-      #     python3 -m pip install mkdocs-material   # install material theme
-
       - name: Dependencies
         run: ./run.sh install_all
 
       - name: Build site
         run: |
+          # If parallel = TRUE in render_docs()
+          # future::plan(future::multicore)
           install.packages(".", repos = NULL, type = "source")
-          altdoc::render_docs(freeze = FALSE)
+          install.packages(c("pkgload", "remotes"))
+          pkgload::load_all()
+          remotes::install_github("etiennebacher/altdoc")
+          altdoc::render_docs(parallel = FALSE, freeze = TRUE, verbose = TRUE)
         shell: Rscript {0}
 
       - name: Deploy to GitHub pages 🚀
