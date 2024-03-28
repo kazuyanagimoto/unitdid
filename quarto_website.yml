@@ -9,6 +9,7 @@ execute:
 
 website:
   title: "$ALTDOC_PACKAGE_NAME"
+  page-navigation: true
   navbar:
     search: true
     right:
@@ -34,3 +35,13 @@ website:
         file: $ALTDOC_CODE_OF_CONDUCT
       - text: Citation
         file: $ALTDOC_CITATION
+
+format:
+  html:
+    toc: true
+    theme:
+      - flatly
+      - custom.scss
+    highlight-style: nord
+    code-copy: true
+    code-overflow: scroll 

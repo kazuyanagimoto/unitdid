@@ -30,6 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
+<link href="./LICENSE.html" rel="next">
+<link href="./man/unitdid.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -70,7 +72,7 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="nav-sidebar floating nav-fixed fullcontent">
+<body class="nav-sidebar floating nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -214,80 +216,84 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#news" id="toc-news" class="nav-link active" data-scroll-target="#news">News</a>
+  <ul class="collapse">
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">0.0.5</a></li>
+  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">0.0.4</a></li>
+  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">0.0.3</a></li>
+  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">0.0.2</a></li>
+  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">0.0.1</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 
 
 
-<section id="unitdid-0.0.5" class="level2">
-<h2 class="anchored" data-anchor-id="unitdid-0.0.5">unitdid 0.0.5</h2>
-<section id="new-features" class="level3">
-<h3 class="anchored" data-anchor-id="new-features">New Features</h3>
+<section id="news" class="level1">
+<h1>News</h1>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section">0.0.5</h2>
+<p>New Features:</p>
 <ul>
 <li>Support for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix</li>
 <li>Add <code>only_full_horizon</code> option for <code>get_unitdid()</code></li>
 </ul>
 </section>
-</section>
-<section id="unitdid-0.0.4" class="level2">
-<h2 class="anchored" data-anchor-id="unitdid-0.0.4">unitdid 0.0.4</h2>
-<section id="new-features-1" class="level3">
-<h3 class="anchored" data-anchor-id="new-features-1">New Features</h3>
+<section id="section-1" class="level2">
+<h2 class="anchored" data-anchor-id="section-1">0.0.4</h2>
+<p>New Features:</p>
 <ul>
 <li>Support for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation</li>
 <li>Add <code>allow_negative_var</code> option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).</li>
 </ul>
-</section>
-<section id="bug-fixes" class="level3">
-<h3 class="anchored" data-anchor-id="bug-fixes">Bug Fixes</h3>
+<p>Bug Fixes:</p>
 <ul>
 <li>Measurement error (<code>zz000varcont</code> in the code) is not esimated with weights (<a href="https://github.com/kazuyanagimoto/unitdid/issues/11">#11</a>)</li>
 </ul>
 </section>
-</section>
-<section id="unitdid-0.0.3" class="level2">
-<h2 class="anchored" data-anchor-id="unitdid-0.0.3">unitdid 0.0.3</h2>
-<section id="new-features-2" class="level3">
-<h3 class="anchored" data-anchor-id="new-features-2">New Features</h3>
+<section id="section-2" class="level2">
+<h2 class="anchored" data-anchor-id="section-2">0.0.3</h2>
+<p>New Features:</p>
 <ul>
 <li>Support for <code>first_stage</code> argument for more parametric first stage estimation</li>
 <li>Support for <code>by</code> argument for aggregation</li>
 </ul>
-</section>
-<section id="bug-fixes-1" class="level3">
-<h3 class="anchored" data-anchor-id="bug-fixes-1">Bug Fixes</h3>
+<p>Bug Fixes:</p>
 <ul>
 <li>Bug when <code>data[[yname]]</code> includes <code>NA</code> values</li>
 <li>Bug when variance estimation includes <code>NA</code> values (v0.0.3.1)</li>
 <li>Bug when <code>by</code> does not have a higher category (v0.0.3.2)</li>
 </ul>
 </section>
-</section>
-<section id="unitdid-0.0.2" class="level2">
-<h2 class="anchored" data-anchor-id="unitdid-0.0.2">unitdid 0.0.2</h2>
-<section id="new-features-3" class="level3">
-<h3 class="anchored" data-anchor-id="new-features-3">New Features</h3>
+<section id="section-3" class="level2">
+<h2 class="anchored" data-anchor-id="section-3">0.0.2</h2>
+<p>New Features:</p>
 <ul>
 <li>Support for <code>wname</code> argument for weighted estimation</li>
 </ul>
-</section>
-<section id="bug-fixes-2" class="level3">
-<h3 class="anchored" data-anchor-id="bug-fixes-2">Bug Fixes</h3>
+<p>Bug Fixes:</p>
 <ul>
 <li>Normalization in <code>summary</code> when <code>normalized = FALSE</code> in the model</li>
 <li>Bug when <code>data[[tname]]</code> includes <code>NA</code> values</li>
 </ul>
 </section>
-</section>
-<section id="unitdid-0.0.1" class="level2">
-<h2 class="anchored" data-anchor-id="unitdid-0.0.1">unitdid 0.0.1</h2>
+<section id="section-4" class="level2">
+<h2 class="anchored" data-anchor-id="section-4">0.0.1</h2>
 <ul>
 <li>Initial GitHub submission</li>
 </ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -700,6 +706,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./man/unitdid.html" class="pagination-link" aria-label="unitdid">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">unitdid</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./LICENSE.html" class="pagination-link" aria-label="License">
+        <span class="nav-page-text">License</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 
 
