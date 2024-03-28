@@ -33,7 +33,7 @@ set.seed(1234)
 base_heterocp <- gen_heterocp()
 ```
 
-Inside of the function `gen_heterocp()`, the following steps are performed.
+Inside the function `gen_heterocp()`, the following steps are performed.
 
 ### 1. Generate $i = \{1, \dots, 1000\}$ individuals
 
@@ -48,7 +48,8 @@ f(a) = \begin{cases}
 \end{cases}
 $$
 
-```{r, fig.align='center', fig.width=6}
+```{r}
+#| code-fold: true
 base_heterocp |>
   distinct(id, .keep_all = TRUE) |>
   mutate(event_age = cyear - byear) |>
@@ -106,6 +107,7 @@ I simulate the data set 100 times and compare the true values with
 the mean, 2.5% quantile, and 97.5% quantile of the estimated values.
 
 ```{r simulation}
+#| code-fold: show
 set.seed(1234)
 n_sim <- 100
 
@@ -133,6 +135,7 @@ if (!file.exists(path_sim)) {
 ```
 
 ```{r}
+#| code-fold: true
 val_true <- tibble(
   event_age = 25:34,
   tau1 = -1.2 + 0.3 * log(event_age),
@@ -152,8 +155,9 @@ val_true <- tibble(
 
 df_plot <- simulated |>
   mutate(sd = sqrt(var)) |>
-  summarize(across(c(mean, sd), list("lci" = ~quantile(.x, 0.025),
-                                     "rci" = ~quantile(.x, 0.975))),
+  summarize(across(c(mean, sd),
+                   list("lci" = ~quantile(.x, 0.025),
+                        "rci" = ~quantile(.x, 0.975))),
             across(c(mean, sd), mean),
             .by = c(event_age, rel_time)) |>
   mutate(lbl = "Simulation") |>
@@ -164,17 +168,21 @@ df_plot <- simulated |>
 
 ### Mean of $\tau_{ik}$
 
-```{r, fig.align='center', fig.height=4.33, fig.width=7}
+```{r}
+#| code-fold: true
 df_plot |>
-  ggplot(aes(x = rel_time, y = mean, ymin = mean_lci, ymax = mean_rci,
-           color = lbl, shape = lbl)) +
+  ggplot(aes(x = rel_time, y = mean,
+             ymin = mean_lci, ymax = mean_rci,
+             color = lbl, shape = lbl)) +
   geom_point(position = position_dodge(width = 0.3)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.3)) +
+  geom_errorbar(width = 0.2,
+                position = position_dodge(width = 0.3)) +
   geom_vline(xintercept = -1, linetype = "dashed") +
   geom_hline(yintercept = 0) +
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   facet_wrap(~lbl_facet, ncol = 5) +
-  labs(x = "Time to Treatment", y = NULL, color = NULL, shape = NULL) +
+  labs(x = "Time to Treatment", y = NULL,
+       color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
@@ -183,17 +191,21 @@ df_plot |>
 
 ### Standard Deviation of $\tau_{ik}$
 
-```{r, fig.align='center', fig.height=4.33, fig.width=7}
+```{r}
+#| code-fold: true
 df_plot |>
-  ggplot(aes(x = rel_time, y = sd, ymin = sd_lci, ymax = sd_rci,
-           color = lbl, shape = lbl)) +
+  ggplot(aes(x = rel_time, y = sd,
+             ymin = sd_lci, ymax = sd_rci,
+             color = lbl, shape = lbl)) +
   geom_point(position = position_dodge(width = 0.3)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.3)) +
+  geom_errorbar(width = 0.2,
+                position = position_dodge(width = 0.3)) +
   geom_vline(xintercept = -1, linetype = "dashed") +
   geom_hline(yintercept = 0) +
   scale_color_manual(values = c("#009F8C", "#B75C9D")) +
   facet_wrap(~lbl_facet, ncol = 5) +
-  labs(x = "Time to Treatment", y = NULL, color = NULL, shape = NULL) +
+  labs(x = "Time to Treatment", y = NULL,
+       color = NULL, shape = NULL) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),

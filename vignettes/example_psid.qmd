@@ -5,10 +5,24 @@ date: today
 bibliography: references.bib
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  dev = "svg",
+  fig.ext = "svg",
+  fig.cap = ""
+)
+```
+
 ```{r setup}
 library(unitdid)
 library(here)
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(purrr)
 ```
 
 ### Panel Study of Income Dynamics (PSID)
@@ -22,7 +36,7 @@ for the registered users.
 To avoid the convoluted cleaning tasks, I mostly use the cleaning codes provided
 by the [Comparative Panel File (CPF)](https://www.cpfdata.com). Their cleaning
 [codes](https://www.cpfdata.com) are developed for creating a harmonized panel
-data of seven countries (Australia, Germany, the UK, South Korea, Russia,
+data from seven countries (Australia, Germany, the UK, South Korea, Russia,
 Switzerland, and the US).
 
 To replicate this article, you need to run
@@ -34,7 +48,9 @@ To replicate this article, you need to run
     -   `us_01.dta`-`us_03.dta` will be produced
 2.  Run the following code to create a dataset for the child penalties
 
-```{r cleaning, eval=FALSE}
+```{r cleaning}
+#| code-fold: true
+#| eval: FALSE
 library(haven)
 cpf_us01 <- read_dta(here("vignettes/us_01.dta"))
 cpf_us03 <- read_dta(here("vignettes/us_03_CPF.dta"))
@@ -60,7 +76,6 @@ cp_psid <- cpf_us03 |>
   right_join(ever_birth, by = c("id" = "pid")) |>
   mutate(rel_time = year - cyear) |>
   filter(!is.na(earn))
-cpf_us01 |> glimpse()
 
 save(cp_psid, file = here("vignettes/cp_psid.rds"))
 ```
@@ -84,12 +99,8 @@ mdl_particip <- cp_psid |>
         bname = "byear",
         by = c("gender"),
         compute_varcov = "var")
-```
 
-### Mean of Child Penalties on Participation
-
-```{r mean_cage, fig.align='center', fig.height=4.33, fig.width=7}
-sum_particip <- summary(mdl_particip, agg = "event_age", na.rm = TRUE) |>
+sum_particip <- summary(mdl_particip, agg = "event_age") |>
   filter(between(event_age, 26, 32))
 
 df_plot <- sum_particip |>
@@ -98,7 +109,12 @@ df_plot <- sum_particip |>
          var = 0) |>
   bind_rows(sum_particip) |>
   mutate(lbl_facet = paste0("Age ", event_age))
+```
 
+### Mean of Child Penalties on Participation
+
+```{r mean_cage}
+#| code-fold: true
 df_plot |>
   ggplot(aes(x = rel_time, y = mean,
              color = gender, shape = gender)) +
@@ -119,7 +135,8 @@ df_plot |>
 
 ### Standard Deviation of Child Penalties on Participation
 
-```{r sd_cage, fig.align='center', fig.height=4.33, fig.width=7}
+```{r sd_cage}
+#| code-fold: true
 df_plot |>
   ggplot(aes(x = rel_time, y = sqrt(var),
              color = gender, shape = gender)) +
@@ -143,10 +160,14 @@ df_plot |>
 To highlight the flexibility of the individual child penalties, let's plot the
 relationship between the years of education and the child penalties.
 
-```{r, fig.align='center', fig.height=4.33, fig.width=7}
+```{r}
+unitdid_particip <- get_unitdid(mdl_particip)
+```
+
+```{r}
+#| code-fold: true
 library(patchwork)
 
-unitdid_particip <- get_unitdid(mdl_particip)
 plot_scatter <- function(gender) {
   clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
@@ -174,44 +195,49 @@ p1 / p2
 
 Another way to visualize the relationship is to use the binscatter [@cattaneo2023].
 
-```{r, include=FALSE}
+```{r}
+#| include: FALSE
 library(binsreg)
 # Since I cannot hide plots in binsreg, I duplicate the code with `eval = FALSE`
-compute_binsreg <- function(gender, rel_time) {
+compute_binsreg <- function(gender) {
   est <- unitdid_particip |>
-    filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
+    filter(gender == {{ gender }}) |>
     as.data.frame() |>
-    binsreg(x = years_edu, y = particip_tilde, data = _)
+    binsreg(x = years_edu, y = particip_tilde, data = _,
+            by = rel_time)
 
-  est$data.plot$`Group Full Sample`$data.dots |>
-    mutate(gender = gender, rel_time = rel_time)
+  map(0:5, ~{est$data.plot[[paste0("Group ", .x)]]$data.dots |>
+               select(x, fit) |>
+               mutate(rel_time = .x)}) |>
+    list_rbind() |>
+    mutate(gender = gender)
 }
 
-bs <- map2(rep(c("Men", "Women"), times = 6),
-           rep(0:5, each = 2),
-           ~compute_binsreg(.x, .y)) |>
-  list_rbind()
+bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
 ```
 
-```{r, eval = FALSE}
+```{r}
+#| eval: FALSE
 library(binsreg)
-compute_binsreg <- function(gender, rel_time) {
-  est <- unitdid_particip |>
-    filter(gender == {{ gender }}, rel_time == {{ rel_time }}) |>
-    as.data.frame() |>
-    binsreg(x = years_edu, y = particip_tilde, data = _)
 
-  est$data.plot$`Group Full Sample`$data.dots |>
-    mutate(gender = gender, rel_time = rel_time)
+compute_binsreg <- function(gender) {
+  est <- unitdid_particip |>
+    filter(gender == {{ gender }}) |>
+    as.data.frame() |>
+    binsreg(x = years_edu, y = particip_tilde, data = _, by = rel_time)
+
+  map(0:5, ~{est$data.plot[[paste0("Group ", .x)]]$data.dots |>
+               select(x, fit) |>
+               mutate(rel_time = .x)}) |>
+    list_rbind() |>
+    mutate(gender = gender)
 }
 
-bs <- map2(rep(c("Men", "Women"), times = 6),
-           rep(0:5, each = 2),
-           ~compute_binsreg(.x, .y)) |>
-  list_rbind()
+bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
 ```
 
-```{r, fig.height=4.33, fig.width=7, fig.align='center'}
+```{r}
+#| code-fold: true
 plot_binsreg <- function(gender) {
   clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
