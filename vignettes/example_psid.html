@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kazuharu Yanagimoto">
-<meta name="dcterms.date" content="2024-03-28">
+<meta name="dcterms.date" content="2024-03-29">
 
 <title>unitdid - Individual-level Child Penalties with PSID</title>
 <style>
@@ -313,7 +313,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 28, 2024</p>
+      <p class="date">March 29, 2024</p>
     </div>
   </div>
   
@@ -387,7 +387,7 @@ div.csl-indent {
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">eage =</span> cyear <span class="sc">-</span> byear) <span class="sc">|&gt;</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cyear <span class="sc">&gt;=</span> <span class="dv">1968</span>,</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>         year <span class="sc">&lt;=</span> <span class="dv">1997</span>, <span class="co"># The last year of the annual data</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>         <span class="fu">between</span>(eage, <span class="dv">22</span>, <span class="dv">40</span>)) <span class="co"># The Age range of the first childbirth</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>         <span class="fu">between</span>(eage, <span class="dv">22</span>, <span class="dv">40</span>))</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>mdl_particip <span class="ot">&lt;-</span> cp_psid <span class="sc">|&gt;</span></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unitdid</span>(<span class="at">yname =</span> <span class="st">"particip"</span>,</span>
@@ -521,16 +521,17 @@ div.csl-indent {
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  est <span class="ot">&lt;-</span> unitdid_particip <span class="sc">|&gt;</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(gender <span class="sc">==</span> {{ gender }}) <span class="sc">|&gt;</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">binsreg</span>(<span class="at">x =</span> years_edu, <span class="at">y =</span> particip_tilde, <span class="at">data =</span> _, <span class="at">by =</span> rel_time)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="sc">~</span>{est<span class="sc">$</span>data.plot[[<span class="fu">paste0</span>(<span class="st">"Group "</span>, .x)]]<span class="sc">$</span>data.dots <span class="sc">|&gt;</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>               <span class="fu">select</span>(x, fit) <span class="sc">|&gt;</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>               <span class="fu">mutate</span>(<span class="at">rel_time =</span> .x)}) <span class="sc">|&gt;</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list_rbind</span>() <span class="sc">|&gt;</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">gender =</span> gender)</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>bs <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">c</span>(<span class="st">"Men"</span>, <span class="st">"Women"</span>), compute_binsreg) <span class="sc">|&gt;</span> <span class="fu">list_rbind</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">binsreg</span>(<span class="at">x =</span> years_edu, <span class="at">y =</span> particip_tilde,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> _, <span class="at">by =</span> rel_time)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="sc">~</span>{est<span class="sc">$</span>data.plot[[<span class="fu">paste0</span>(<span class="st">"Group "</span>, .x)]]<span class="sc">$</span>data.dots <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>               <span class="fu">select</span>(x, fit) <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>               <span class="fu">mutate</span>(<span class="at">rel_time =</span> .x)}) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list_rbind</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">gender =</span> gender)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>bs <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">c</span>(<span class="st">"Men"</span>, <span class="st">"Women"</span>), compute_binsreg) <span class="sc">|&gt;</span> <span class="fu">list_rbind</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <details class="code-fold">
