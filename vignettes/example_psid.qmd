@@ -2,7 +2,6 @@
 title: "Individual-level Child Penalties with PSID"
 author: Kazuharu Yanagimoto
 date: today
-bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -89,7 +88,7 @@ cp_psid <- cp_psid |>
   mutate(eage = cyear - byear) |>
   filter(cyear >= 1968,
          year <= 1997, # The last year of the annual data
-         between(eage, 22, 40)) # The Age range of the first childbirth
+         between(eage, 22, 40))
 
 mdl_particip <- cp_psid |>
   unitdid(yname = "particip",
@@ -224,7 +223,8 @@ compute_binsreg <- function(gender) {
   est <- unitdid_particip |>
     filter(gender == {{ gender }}) |>
     as.data.frame() |>
-    binsreg(x = years_edu, y = particip_tilde, data = _, by = rel_time)
+    binsreg(x = years_edu, y = particip_tilde,
+            data = _, by = rel_time)
 
   map(0:5, ~{est$data.plot[[paste0("Group ", .x)]]$data.dots |>
                select(x, fit) |>

@@ -44,4 +44,6 @@ format:
       - custom.scss
     highlight-style: nord
     code-copy: true
-    code-overflow: scroll 
+    code-overflow: scroll
+
+bibliography: ../references.bib

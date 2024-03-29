@@ -8,8 +8,8 @@
 <!-- badges: end -->
 
 The `unitdid` package provides a set of functions for the analysis of
-the unit-level difference-in-differences (Arkhangelsky, Yanagimoto, and
-Zohar, 2024)
+the unit-level difference-in-differences ([Arkhangelsky, Yanagimoto, and
+Zohar 2024](https://arxiv.org/abs/2403.19563)).
 
 ## Installation
 
@@ -158,3 +158,10 @@ sum_eage |>
 ```
 
 <img src="man/figures/README-var_cage-1.svg" style="width:100.0%" />
+
+## References
+
+Arkhangelsky, Dmitry, Kazuharu Yanagimoto, and Tom Zohar. 2024.
+“Flexible Analysis of Individual Heterogeneity in Event Studies:
+Application to the Child Penalty.” arXiv.
+<https://arxiv.org/abs/2403.19563>.
