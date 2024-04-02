@@ -5,6 +5,11 @@
 # unitdid
 
 <!-- badges: start -->
+
+[![unitdid status
+badge](https://kazuyanagimoto.r-universe.dev/badges/unitdid.png)](https://kazuyanagimoto.r-universe.dev/unitdid)
+<a href = "https://github.com/kazuyanagimoto/unitdid/blob/main/LICENSE.md" target = "_blank"><img src="https://img.shields.io/badge/license-MIT-blue"></a>
+[![Docs](https://img.shields.io/badge/docs-homepage-blue.svg)](https://kazuyanagimoto.com/unitdid/index.html)
 <!-- badges: end -->
 
 The `unitdid` package provides a set of functions for the analysis of
@@ -13,12 +18,11 @@ Zohar 2024](https://arxiv.org/abs/2403.19563)).
 
 ## Installation
 
-You can install the development version of unitdid from
-[GitHub](https://github.com/kazuyanagimoto/unitdid) with:
+You can install the development version of unitdid from R-universe with:
 
 ``` r
-# install.packages("remotes")
-remotes::install_github("kazuyanagimoto/unitdid")
+install.packages('unitdid',
+                 repos = 'https://kazuyanagimoto.r-universe.dev')
 ```
 
 ## Example
