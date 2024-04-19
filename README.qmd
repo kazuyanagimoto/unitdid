@@ -15,7 +15,8 @@ knitr::opts_chunk$set(
 # unitdid
 
 <!-- badges: start -->
-[![unitdid status badge](https://kazuyanagimoto.r-universe.dev/badges/unitdid)](https://kazuyanagimoto.r-universe.dev/unitdid)
+<a href="https://kazuyanagimoto.r-universe.dev"><img src="https://kazuyanagimoto.r-universe.dev/badges/unitdid" class="img-fluid" alt="R-universe status badge"></a>
+[![R-CMD-check](https://github.com/kazuyanagimoto/unitdid/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kazuyanagimoto/unitdid/actions/workflows/R-CMD-check.yaml)
 <a href = "https://github.com/kazuyanagimoto/unitdid/blob/main/LICENSE.md" target = "_blank"><img src="https://img.shields.io/badge/license-MIT-blue"></a>
 [![Docs](https://img.shields.io/badge/docs-homepage-blue.svg)](https://kazuyanagimoto.com/unitdid/index.html)
 <!-- badges: end -->
