@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.553">
+<meta name="generator" content="quarto-1.4.555">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -271,7 +271,7 @@ ul.task-list li input[type="checkbox"] {
 <table>
 <tbody><tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_data">data</code>
+<code id="data">data</code>
 </td>
 <td>
 The dataframe containing all the variables
@@ -279,7 +279,7 @@ The dataframe containing all the variables
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_yname">yname</code>
+<code id="yname">yname</code>
 </td>
 <td>
 Outcome variable
@@ -287,7 +287,7 @@ Outcome variable
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_iname">iname</code>
+<code id="iname">iname</code>
 </td>
 <td>
 Unit identifier
@@ -295,7 +295,7 @@ Unit identifier
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_tname">tname</code>
+<code id="tname">tname</code>
 </td>
 <td>
 Time variable
@@ -303,7 +303,7 @@ Time variable
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_ename">ename</code>
+<code id="ename">ename</code>
 </td>
 <td>
 Event timing variable
@@ -311,7 +311,7 @@ Event timing variable
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_first_stage">first_stage</code>
+<code id="first_stage">first_stage</code>
 </td>
 <td>
 Formula for Y(0). Formula follows <code>fixest::feols</code>. If not specified, unit (<code>iname</code>) and time (<code>tname</code>) fixed effects will be used.
@@ -319,7 +319,7 @@ Formula for Y(0). Formula follows <code>fixest::feols</code>. If not specified, 
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_wname">wname</code>
+<code id="wname">wname</code>
 </td>
 <td>
 Optional. The name of the weight variable.
@@ -327,7 +327,7 @@ Optional. The name of the weight variable.
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_ytildename">ytildename</code>
+<code id="ytildename">ytildename</code>
 </td>
 <td>
 Optional. The name of the imputed outcome variable. If not provided, the function will use <code>paste0(yname, “_tilde”)</code>.
@@ -335,7 +335,7 @@ Optional. The name of the imputed outcome variable. If not provided, the functio
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_yvarname">yvarname</code>
+<code id="yvarname">yvarname</code>
 </td>
 <td>
 Optional. The name of the unit-level variance of the outcome variable. If not provided, the function will use <code>paste0(yname, “_var”)</code>.
@@ -343,7 +343,7 @@ Optional. The name of the unit-level variance of the outcome variable. If not pr
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_ycovname">ycovname</code>
+<code id="ycovname">ycovname</code>
 </td>
 <td>
 Optional. The name of the unit-level covariance of the outcome variable. If not provided, the function will use <code>paste0(yname, “_cov”)</code>.
@@ -351,7 +351,7 @@ Optional. The name of the unit-level covariance of the outcome variable. If not 
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_kprimename">kprimename</code>
+<code id="kprimename">kprimename</code>
 </td>
 <td>
 Optional. The name of the relative time to treatment. This is used for the second column name of the relative time of the unit-level covariance estimation. Default is "kprime".
@@ -359,7 +359,7 @@ Optional. The name of the relative time to treatment. This is used for the secon
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_k_min">k_min</code>
+<code id="k_min">k_min</code>
 </td>
 <td>
 Relative time to treatment at which treatment starts. Default is 0.
@@ -367,7 +367,7 @@ Relative time to treatment at which treatment starts. Default is 0.
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_k_max">k_max</code>
+<code id="k_max">k_max</code>
 </td>
 <td>
 Relative time to treatment at which treatment ends. Default is 5.
@@ -375,7 +375,7 @@ Relative time to treatment at which treatment ends. Default is 5.
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_compute_varcov">compute_varcov</code>
+<code id="compute_varcov">compute_varcov</code>
 </td>
 <td>
 One of c("none", "var", "cov") and Default is "none". If "var", the function will estimate the unit-level variance of the outcome variable. If "cov", the function will estimate the unit-level covariance of the outcome variable for each pair within <code>k_min:k_max</code>.
@@ -383,7 +383,7 @@ One of c("none", "var", "cov") and Default is "none". If "var", the function wil
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_by">by</code>
+<code id="by">by</code>
 </td>
 <td>
 A character vector of variables to estimate separately by. Default is NULL.
@@ -391,7 +391,7 @@ A character vector of variables to estimate separately by. Default is NULL.
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_bname">bname</code>
+<code id="bname">bname</code>
 </td>
 <td>
 Birth year variable. Default is NULL. Necessary to aggregate the estimates by age at event.
@@ -399,7 +399,7 @@ Birth year variable. Default is NULL. Necessary to aggregate the estimates by ag
 </tr>
 <tr>
 <td style="white-space: nowrap; font-family: monospace; vertical-align: top">
-<code id="unitdid_:_normalized">normalized</code>
+<code id="normalized">normalized</code>
 </td>
 <td>
 Logical. If TRUE, the function will normalize the outcome variable scale. Default is FALSE.
