@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# unitdid
+# [unitdid](https://kazuyanagimoto.com/unitdid/)
 
 <!-- badges: start -->
 <a href="https://kazuyanagimoto.r-universe.dev"><img src="https://kazuyanagimoto.r-universe.dev/badges/unitdid" class="img-fluid" alt="R-universe status badge"></a>
