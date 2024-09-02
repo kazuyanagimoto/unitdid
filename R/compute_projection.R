@@ -90,7 +90,7 @@ covcont_group <- function(data, iname, tname, ename, k_min, k_max,
     dplyr::arrange(!!rlang::sym(ename), zz000k)
 
   altepsilon <- purrr::map2(feasible_ek[[ename]], feasible_ek$zz000k,
-                            ~ altepsilon_ek(data, iname, tname, ename,
+                            ~ altepsilon_ek(data, iname, tname, ename, k_min,
                                             .x, .y)) |>
     dplyr::bind_rows()
 
@@ -120,17 +120,17 @@ covcont_group <- function(data, iname, tname, ename, k_min, k_max,
                      .by = c(ename, "zz000k", "zz000l"))
 }
 
-altepsilon_ek <- function(data, iname, tname, ename, e, k) {
+altepsilon_ek <- function(data, iname, tname, ename, k_min, e, k) {
 
   mean_epsilon <- data |>
-    dplyr::filter(!!rlang::sym(ename) > e + k,
+    dplyr::filter(!!rlang::sym(ename) + k_min > e + k,
                   !!rlang::sym(tname) < e + k) |>
     dplyr::summarize(mean_epsilon = stats::weighted.mean(zz000ytilde,
                                                          w = zz000w),
                      .by = !!rlang::sym(iname))
 
   data |>
-    dplyr::filter(!!rlang::sym(ename) > e + k,
+    dplyr::filter(!!rlang::sym(ename) + k_min > e + k,
                   !!rlang::sym(tname) == e + k) |>
     dplyr::left_join(mean_epsilon, by = c(iname)) |>
     dplyr::mutate(zz000altepsilon = zz000ytilde - mean_epsilon) |>
