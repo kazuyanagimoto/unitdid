@@ -1,8 +1,8 @@
 {
-  "hash": "8665277ec5d9aeec9573b765cdb3f7c5",
+  "hash": "0d0386d444f81460978a534506050539",
   "result": {
     "engine": "knitr",
-    "markdown": "## Generate Sample Heterogenous Child Penalty Data {.unnumbered}\n\n\n### Description\n\nGenerate Sample Heterogenous Child Penalty Data\n\n\n\n### Usage\n\n<pre><code class='language-R'>gen_heterocp(size_cohort = 300)\n</code></pre>\n\n\n### Arguments\n\n<table>\n<tr><td style = \"white-space: nowrap; font-family: monospace; vertical-align: top\"><code id=\"gen_heterocp_:_size_cohort\">size_cohort</code></td>\n<td>\nn_obsumber of individuals per birth year\n</td></tr>\n</table>\n\n\n### Value\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n### Examples\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(unitdid)\n\nset.seed(1234)\nbase_heterocp <- gen_heterocp()\n```\n:::\n",
+    "markdown": "## Generate Sample Heterogenous Child Penalty Data {.unnumbered}\n\n\n### Description\n\nGenerate Sample Heterogenous Child Penalty Data\n\n\n\n### Usage\n\n<pre><code class='language-R'>gen_heterocp(size_cohort = 300)\n</code></pre>\n\n\n### Arguments\n\n<table>\n<tr><td style = \"white-space: nowrap; font-family: monospace; vertical-align: top\"><code id=\"size_cohort\">size_cohort</code></td>\n<td>\nn_obsumber of individuals per birth year\n</td></tr>\n</table>\n\n\n### Value\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n### Examples\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(\"unitdid\")\n\nset.seed(1234)\nbase_heterocp <- gen_heterocp()\n```\n:::\n",
     "supporting": [],
     "filters": [
       "rmarkdown/pagebreak.lua"

@@ -10,17 +10,6 @@
 #'   If not specified, unit (`iname`) and time (`tname`) fixed effects
 #'   will be used.
 #' @param wname Optional. The name of the weight variable.
-#' @param ytildename Optional. The name of the imputed outcome variable.
-#'   If not provided, the function will use `paste0(yname, "_tilde")`.
-#' @param yvarname Optional. The name of the unit-level variance of
-#' the outcome variable. If not provided, the function will use
-#' `paste0(yname, "_var")`.
-#' @param ycovname Optional. The name of the unit-level covariance of
-#' the outcome variable. If not provided, the function will use
-#' `paste0(yname, "_cov")`.
-#' @param kprimename Optional. The name of the relative time to treatment.
-#' This is used for the second column name of the relative time of
-#' the unit-level covariance estimation. Default is "kprime".
 #' @param k_min Relative time to treatment at which treatment starts.
 #'   Default is 0.
 #' @param k_max Relative time to treatment at which treatment ends.
@@ -35,7 +24,26 @@
 #'   Necessary to aggregate the estimates by age at event.
 #' @param normalized Logical. If TRUE,
 #'   the function will normalize the outcome variable scale. Default is FALSE.
-#'
+#' @param newnames Optional. A list of new names for the output variables.
+#'   `ytildename` is the name of the imputed outcome variable.
+#'      Default is `paste0(yname, "_tilde")`.
+#'   `yvarname` is the name of the unit-level variance of the outcome variable.
+#'     Default is `paste0(yname, "_var")`.
+#'   `yvarrawname` is the name of the raw unit-level variance of
+#'      the outcome variable, which is the variance before subtracting the
+#'      variance of the measurement error. Default is `paste0(yname, "_varraw")`.
+#'   `yvarerrname` is the name of the unit-level variance of the measurement error.
+#'      Default is `paste0(yname, "_varerr")`.
+#'  `ycovname` is the name of the unit-level covariance of the outcome variable.
+#'    Default is `paste0(yname, "_cov")`.
+#'  `ycovrawname` is the name of the raw unit-level covariance of
+#'     the outcome variable, which is the covariance before subtracting the
+#'     covariance of the measurement error. Default is `paste0(yname, "_covraw")`.
+#'  `ycoverrname` is the name of the unit-level covariance of the measurement error.
+#'    Default is `paste0(yname, "_coverr")`.
+#'  `kprimename` is the name of the relative time to treatment.
+#'    This is used for the second column name of the relative time of
+#'    the unit-level covariance estimation. Default is "kprime".
 #' @return A `unitdid` class object.
 #' @export
 #'
@@ -46,38 +54,51 @@ unitdid <- function(data,
                     ename,
                     first_stage = NULL,
                     wname = NULL,
-                    ytildename = NULL,
-                    yvarname = NULL,
-                    ycovname = NULL,
-                    kprimename = "kprime",
                     k_min = 0,
                     k_max = 5,
                     compute_varcov = "none",
                     by = NULL,
                     bname = NULL,
-                    normalized = FALSE) {
+                    normalized = FALSE,
+                    newnames = NULL) {
 
   by_est <- c(by, bname) |> unique()
 
   # Check the input
-  ytildename <- ifelse(is.null(ytildename), paste0(yname, "_tilde"), ytildename)
-  if (ytildename %in% colnames(data)) {
-    stop("Please specify a different name in the data for `ytildename`")
-  }
-  yvarname <- ifelse(is.null(yvarname), paste0(yname, "_var"), yvarname)
-  if (yvarname %in% colnames(data)) {
-    stop("Please specify a different name in the data for `yvarname`")
-  }
-  ycovname <- ifelse(is.null(ycovname), paste0(yname, "_cov"), ycovname)
-  if (ycovname %in% colnames(data)) {
-    stop("Please specify a different name in the data for `ycovname`")
-  }
-  if (kprimename %in% colnames(data) && compute_varcov == "cov") {
-    stop("Please specify a different name in the data for `kprimename`")
-  }
-
   if (!(compute_varcov %in% c("none", "var", "cov"))) {
     stop("`compute_varcov` must be one of c('none', 'var', 'cov')")
+  }
+
+  for (name in c(yname, iname, tname, ename)) {
+    if (!name %in% names(data)) {
+      stop(paste0("`", name, "` is not found in the data."))
+    }
+  }
+
+  for (name in c(bname, wname)) {
+    if (!is.null(name) && !name %in% names(data)) {
+      stop(paste0("`", name, "` is not found in the data."))
+    }
+  }
+
+  # New Column Names
+  newnames_default <- list(ytildename = paste0(yname, "_tilde"),
+                           yvarname = paste0(yname, "_var"),
+                           yvarrawname = paste0(yname, "_varraw"),
+                           yvarerrname = paste0(yname, "_varerr"),
+                           ycovname = paste0(yname, "_cov"),
+                           ycovrawname = paste0(yname, "_covraw"),
+                           ycoverrname = paste0(yname, "_coverr"),
+                           kprimename = "kprime")
+
+  if (is.null(newnames)) {
+    newnames <- newnames_default
+  } else {
+    for (name in names(newnames_default)) {
+      if (!name %in% names(newnames)) {
+        newnames[[name]] <- newnames_default[[name]]
+      }
+    }
   }
 
   # Sample Selection & Variable Creation
@@ -107,21 +128,19 @@ unitdid <- function(data,
                wname = wname,
                k_min = k_min,
                k_max = k_max,
-               ytildename = ytildename,
-               yvarname = yvarname,
-               ycovname = ycovname,
-               kprimename = kprimename,
                compute_varcov = compute_varcov,
                by = by,
                bname = bname,
                by_est = by_est,
-               normalized = normalized)
+               normalized = normalized,
+               newnames = newnames)
   object <- list(data = data, info = info)
   class(object) <- "unitdid"
 
   # Denominator of Normalization
   object$yhat_agg <- data |>
-    dplyr::summarize(zz000yhat_agg = stats::weighted.mean(zz000yhat, w = zz000w),
+    dplyr::summarize(zz000yhat_agg = stats::weighted.mean(zz000yhat,
+                                                          w = zz000w),
                      .by = c(!!!rlang::syms(by_est), ename, tname))
 
   # Compute the projection
