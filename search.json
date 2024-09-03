@@ -1,10 +1,80 @@
 [
   {
+    "objectID": "NEWS.html",
+    "href": "NEWS.html",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nExport varraw, varerr, covraw, and coverr for explicit variance and covariance adjustment\nSimplify the argument in unitdid for new column names (newnames)\n\nBug Fixes:\n\nvarerr and coverr is not correctly estimated when k_min is not 0\n\n\n\n\nNew Features:\n\nSupport for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix\nAdd only_full_horizon option for get_unitdid()\n\n\n\n\nNew Features:\n\nSupport for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation\nAdd allow_negative_var option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).\n\nBug Fixes:\n\nMeasurement error (zz000varcont in the code) is not esimated with weights (#11)\n\n\n\n\nNew Features:\n\nSupport for first_stage argument for more parametric first stage estimation\nSupport for by argument for aggregation\n\nBug Fixes:\n\nBug when data[[yname]] includes NA values\nBug when variance estimation includes NA values (v0.0.3.1)\nBug when by does not have a higher category (v0.0.3.2)\n\n\n\n\nNew Features:\n\nSupport for wname argument for weighted estimation\n\nBug Fixes:\n\nNormalization in summary when normalized = FALSE in the model\nBug when data[[tname]] includes NA values\n\n\n\n\n\nInitial GitHub submission",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section",
+    "href": "NEWS.html#section",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nExport varraw, varerr, covraw, and coverr for explicit variance and covariance adjustment\nSimplify the argument in unitdid for new column names (newnames)\n\nBug Fixes:\n\nvarerr and coverr is not correctly estimated when k_min is not 0",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section-1",
+    "href": "NEWS.html#section-1",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nSupport for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix\nAdd only_full_horizon option for get_unitdid()",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section-2",
+    "href": "NEWS.html#section-2",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nSupport for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation\nAdd allow_negative_var option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).\n\nBug Fixes:\n\nMeasurement error (zz000varcont in the code) is not esimated with weights (#11)",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section-3",
+    "href": "NEWS.html#section-3",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nSupport for first_stage argument for more parametric first stage estimation\nSupport for by argument for aggregation\n\nBug Fixes:\n\nBug when data[[yname]] includes NA values\nBug when variance estimation includes NA values (v0.0.3.1)\nBug when by does not have a higher category (v0.0.3.2)",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section-4",
+    "href": "NEWS.html#section-4",
+    "title": "News",
+    "section": "",
+    "text": "New Features:\n\nSupport for wname argument for weighted estimation\n\nBug Fixes:\n\nNormalization in summary when normalized = FALSE in the model\nBug when data[[tname]] includes NA values",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#section-5",
+    "href": "NEWS.html#section-5",
+    "title": "News",
+    "section": "",
+    "text": "Initial GitHub submission",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
     "objectID": "vignettes/example_psid.html",
     "href": "vignettes/example_psid.html",
     "title": "Individual-level Child Penalties with PSID",
     "section": "",
-    "text": "library(unitdid)\nlibrary(here)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(purrr)",
+    "text": "library(unitdid)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(purrr)",
     "crumbs": [
       "Articles",
       "Individual-level Child Penalties with PSID"
@@ -15,7 +85,7 @@
     "href": "vignettes/example_psid.html#analysis-of-child-penalties-on-participation",
     "title": "Individual-level Child Penalties with PSID",
     "section": "Analysis of Child Penalties on Participation",
-    "text": "Analysis of Child Penalties on Participation\n\nload(here(\"vignettes/cp_psid.rds\"))\n\ncp_psid &lt;- cp_psid |&gt;\n  mutate(eage = cyear - byear) |&gt;\n  filter(cyear &gt;= 1968,\n         year &lt;= 1997, # The last year of the annual data\n         between(eage, 22, 40))\n\nmdl_particip &lt;- cp_psid |&gt;\n  unitdid(yname = \"particip\",\n        iname = \"id\",\n        tname = \"year\",\n        ename = \"cyear\",\n        bname = \"byear\",\n        by = c(\"gender\"),\n        compute_varcov = \"var\")\n\nsum_particip &lt;- summary(mdl_particip, agg = \"event_age\") |&gt;\n  filter(between(event_age, 26, 32))\n\ndf_plot &lt;- sum_particip |&gt;\n  filter(rel_time == 0) |&gt;\n  mutate(rel_time = -1, mean = 0,\n         var = 0) |&gt;\n  bind_rows(sum_particip) |&gt;\n  mutate(lbl_facet = paste0(\"Age \", event_age))\n\n\nMean of Child Penalties on Participation\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = mean,\n             color = gender, shape = gender)) +\n  geom_point() +\n  geom_line() +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  facet_wrap(~lbl_facet) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  labs(x = \"Time to First Childbirth\",\n       y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\n\n\nStandard Deviation of Child Penalties on Participation\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = sqrt(var),\n             color = gender, shape = gender)) +\n  geom_point() +\n  geom_line() +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  facet_wrap(~lbl_facet) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  labs(x = \"Time to First Childbirth\",\n       y = NULL, color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")",
+    "text": "Analysis of Child Penalties on Participation\n\nload(here::here(\"vignettes/cp_psid.rds\"))\n\ncp_psid &lt;- cp_psid |&gt;\n  mutate(eage = cyear - byear) |&gt;\n  filter(cyear &gt;= 1968,\n         year &lt;= 1997, # The last year of the annual data\n         between(eage, 22, 40))\n\nmdl_particip &lt;- cp_psid |&gt;\n  unitdid(yname = \"particip\",\n        iname = \"id\",\n        tname = \"year\",\n        ename = \"cyear\",\n        bname = \"byear\",\n        by = c(\"gender\"),\n        compute_varcov = \"var\")\n\nsum_particip &lt;- summary(mdl_particip, agg = \"event_age\") |&gt;\n  filter(between(event_age, 26, 32))\n\ndf_plot &lt;- sum_particip |&gt;\n  filter(rel_time == 0) |&gt;\n  mutate(rel_time = -1, mean = 0,\n         var = 0) |&gt;\n  bind_rows(sum_particip) |&gt;\n  mutate(lbl_facet = paste0(\"Age \", event_age))\n\n\nMean of Child Penalties on Participation\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = mean,\n             color = gender, shape = gender)) +\n  geom_point() +\n  geom_line() +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  facet_wrap(~lbl_facet) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  labs(x = \"Time to First Childbirth\",\n       y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\n\n\nStandard Deviation of Child Penalties on Participation\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = sqrt(var),\n             color = gender, shape = gender)) +\n  geom_point() +\n  geom_line() +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  facet_wrap(~lbl_facet) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  labs(x = \"Time to First Childbirth\",\n       y = NULL, color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")",
     "crumbs": [
       "Articles",
       "Individual-level Child Penalties with PSID"
@@ -26,42 +96,53 @@
     "href": "vignettes/example_psid.html#scatter-plot-with-covariates",
     "title": "Individual-level Child Penalties with PSID",
     "section": "Scatter Plot with Covariates",
-    "text": "Scatter Plot with Covariates\nTo highlight the flexibility of the individual child penalties, let’s plot the relationship between the years of education and the child penalties.\n\nunitdid_particip &lt;- get_unitdid(mdl_particip)\n\n\n\nCode\nlibrary(patchwork)\n\nplot_scatter &lt;- function(gender) {\n  clr &lt;- ifelse(gender == \"Men\", \"#009F8C\", \"#B75C9D\")\n\n  unitdid_particip |&gt;\n    filter(gender == {{gender}}, between(rel_time, 0, 5)) |&gt;\n    mutate(lbl_facet = paste0(\"k = \", rel_time)) |&gt;\n    ggplot(aes(x = years_edu, y = particip_tilde)) +\n    geom_point(color = clr, alpha = 0.1) +\n    geom_smooth(method = \"lm\", color = clr, fill = clr) +\n    facet_wrap(~lbl_facet, nrow = 1) +\n    labs(x = \"Years of Education\",\n         y = \"CP on Participation\",\n         title = gender) +\n    coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +\n    theme_minimal()\n}\n\np1 &lt;- plot_scatter(\"Men\")\np2 &lt;- plot_scatter(\"Women\")\n\np1 / p2\n\n\n\n\n\n\n\n\n\n\nOn Binscatter\nAnother way to visualize the relationship is to use the binscatter (Cattaneo et al. 2023).\n\nlibrary(binsreg)\n\ncompute_binsreg &lt;- function(gender) {\n  est &lt;- unitdid_particip |&gt;\n    filter(gender == {{ gender }}) |&gt;\n    as.data.frame() |&gt;\n    binsreg(x = years_edu, y = particip_tilde,\n            data = _, by = rel_time)\n\n  map(0:5, ~{est$data.plot[[paste0(\"Group \", .x)]]$data.dots |&gt;\n               select(x, fit) |&gt;\n               mutate(rel_time = .x)}) |&gt;\n    list_rbind() |&gt;\n    mutate(gender = gender)\n}\n\nbs &lt;- map(c(\"Men\", \"Women\"), compute_binsreg) |&gt; list_rbind()\n\n\n\nCode\nplot_binsreg &lt;- function(gender) {\n  clr &lt;- ifelse(gender == \"Men\", \"#009F8C\", \"#B75C9D\")\n\n  bs |&gt;\n    filter(gender == {{ gender }}) |&gt;\n    mutate(lbl_facet = paste0(\"k = \", rel_time)) |&gt;\n    ggplot(aes(x = x, y = fit)) +\n    geom_point(color = clr) +\n    facet_wrap(~lbl_facet, nrow = 1) +\n    labs(x = \"Years of Education\",\n         y = \"CP on Participation\",\n         title = gender) +\n    theme_minimal()\n}\n\np1 &lt;- plot_binsreg(\"Men\")\np2 &lt;- plot_binsreg(\"Women\")\n\np1 / p2",
+    "text": "Scatter Plot with Covariates\nTo highlight the flexibility of the individual child penalties, let’s plot the relationship between the years of education and the child penalties.\n\nunitdid_particip &lt;- get_unitdid(mdl_particip)\n\n\n\nCode\nlibrary(patchwork)\n\nplot_scatter &lt;- function(gender) {\n  clr &lt;- ifelse(gender == \"Men\", \"#009F8C\", \"#B75C9D\")\n\n  unitdid_particip |&gt;\n    filter(gender == {{gender}}, between(rel_time, 0, 5)) |&gt;\n    mutate(lbl_facet = paste0(\"k = \", rel_time)) |&gt;\n    ggplot(aes(x = years_edu, y = particip_tilde)) +\n    geom_point(color = clr, alpha = 0.1) +\n    geom_smooth(method = \"lm\", color = clr, fill = clr) +\n    facet_wrap(~lbl_facet, nrow = 1) +\n    labs(x = \"Years of Education\",\n         y = \"CP on Participation\",\n         title = gender) +\n    coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +\n    theme_minimal()\n}\n\np1 &lt;- plot_scatter(\"Men\")\np2 &lt;- plot_scatter(\"Women\")\n\np1 / p2\n\n\n\n\n\n\n\n\n\n\nOn Binscatter\nAnother way to visualize the relationship is to use the binscatter (Cattaneo et al. 2024).\n\nlibrary(binsreg)\n\ncompute_binsreg &lt;- function(gender) {\n  est &lt;- unitdid_particip |&gt;\n    filter(gender == {{ gender }}) |&gt;\n    as.data.frame() |&gt;\n    binsreg(x = years_edu, y = particip_tilde,\n            data = _, by = rel_time)\n\n  map(0:5, ~{est$data.plot[[paste0(\"Group \", .x)]]$data.dots |&gt;\n               select(x, fit) |&gt;\n               mutate(rel_time = .x)}) |&gt;\n    list_rbind() |&gt;\n    mutate(gender = gender)\n}\n\nbs &lt;- map(c(\"Men\", \"Women\"), compute_binsreg) |&gt; list_rbind()\n\n\n\nCode\nplot_binsreg &lt;- function(gender) {\n  clr &lt;- ifelse(gender == \"Men\", \"#009F8C\", \"#B75C9D\")\n\n  bs |&gt;\n    filter(gender == {{ gender }}) |&gt;\n    mutate(lbl_facet = paste0(\"k = \", rel_time)) |&gt;\n    ggplot(aes(x = x, y = fit)) +\n    geom_point(color = clr) +\n    facet_wrap(~lbl_facet, nrow = 1) +\n    labs(x = \"Years of Education\",\n         y = \"CP on Participation\",\n         title = gender) +\n    theme_minimal()\n}\n\np1 &lt;- plot_binsreg(\"Men\")\np2 &lt;- plot_binsreg(\"Women\")\n\np1 / p2",
     "crumbs": [
       "Articles",
       "Individual-level Child Penalties with PSID"
     ]
   },
   {
-    "objectID": "CITATION.html",
-    "href": "CITATION.html",
-    "title": "Citation",
-    "section": "",
-    "text": "Citation\nTo cite package ‘unitdid’ in publications use:\n\n  Yanagimoto K (????). _unitdid: Unit-level Difference-in-Difference\n  Estimator_. R package version 0.0.5,\n  https://github.com/kazuyanagimoto/unitdid/,\n  &lt;https://kazuyanagimoto.com/unitdid/&gt;.\n\nA BibTeX entry for LaTeX users is\n\n  @Manual{,\n    title = {unitdid: Unit-level Difference-in-Difference Estimator},\n    author = {Kazuharu Yanagimoto},\n    note = {R package version 0.0.5, https://github.com/kazuyanagimoto/unitdid/},\n    url = {https://kazuyanagimoto.com/unitdid/},\n  }",
+    "objectID": "vignettes/example_psid.html#references",
+    "href": "vignettes/example_psid.html#references",
+    "title": "Individual-level Child Penalties with PSID",
+    "section": "References",
+    "text": "References\n\n\nCattaneo, Matias D., Richard K. Crump, Max H. Farrell, and Yingjie Feng. 2024. “On Binscatter.” American Economic Review 114 (5): 1488–1514. https://doi.org/10.1257/aer.20221576.",
     "crumbs": [
-      "Citation"
+      "Articles",
+      "Individual-level Child Penalties with PSID"
     ]
   },
   {
-    "objectID": "man/base_heterocp.html",
-    "href": "man/base_heterocp.html",
-    "title": "unitdid",
+    "objectID": "LICENSE.html",
+    "href": "LICENSE.html",
+    "title": "MIT License",
     "section": "",
-    "text": "Simulated Individual Child Panalty Data\n\n\n\nbase_heterocp\n\n\n\n\n\nA dataframe with 1000 individuals for each birth year from 1965 to 1984:\n\n\nid\n\n\nIndividual identifier\n\n\nyear\n\n\nYear of observation\n\n\nbyear\n\n\nBirth year\n\n\ncage\n\n\nAge at first birth\n\n\nrel_time\n\n\nRelative time to first birth\n\n\ny\n\n\nOutcome variable\n\n\n\n\n\nGenerated by gen_heterocp() with seed 1234",
+    "text": "MIT License\nCopyright (c) 2023 Kazuharu Yanagimoto\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
     "crumbs": [
-      "Reference",
-      "base_heterocp"
+      "License"
     ]
   },
   {
-    "objectID": "man/base_heterocp.html#simulated-individual-child-panalty-data",
-    "href": "man/base_heterocp.html#simulated-individual-child-panalty-data",
+    "objectID": "man/summary.unitdid.html",
+    "href": "man/summary.unitdid.html",
     "title": "unitdid",
     "section": "",
-    "text": "Simulated Individual Child Panalty Data\n\n\n\nbase_heterocp\n\n\n\n\n\nA dataframe with 1000 individuals for each birth year from 1965 to 1984:\n\n\nid\n\n\nIndividual identifier\n\n\nyear\n\n\nYear of observation\n\n\nbyear\n\n\nBirth year\n\n\ncage\n\n\nAge at first birth\n\n\nrel_time\n\n\nRelative time to first birth\n\n\ny\n\n\nOutcome variable\n\n\n\n\n\nGenerated by gen_heterocp() with seed 1234",
+    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\n## S3 method for class 'unitdid'\nsummary(object, ...)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\n…\n\n\naggregate_unitdid arguments\n\n\n\n\n\n\nA tibble with the summary statistics\n\n\n\n\nlibrary(\"unitdid\")\n\nlibrary(unitdid)\nmdl_base &lt;- base_heterocp |&gt;\n  unitdid(yname = \"y\",\n          iname = \"id\",\n          tname = \"year\",\n          ename = \"cyear\",\n          bname = \"byear\")\nsummary(mdl_base, agg = \"event_age\")\n\n# A tibble: 144 × 4\n      mean rel_time     n event_age\n     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;     &lt;int&gt;\n 1 -0.0344        0    13        15\n 2 -0.0860        0    42        16\n 3 -0.170         0    59        17\n 4 -0.141         0    79        18\n 5 -0.0883        0    99        19\n 6 -0.0689        0   107        20\n 7 -0.115         0   158        21\n 8 -0.0684        0   165        22\n 9 -0.0778        0   168        23\n10 -0.0567        0   206        24\n# ℹ 134 more rows",
     "crumbs": [
       "Reference",
-      "base_heterocp"
+      "summary.unitdid"
+    ]
+  },
+  {
+    "objectID": "man/summary.unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
+    "href": "man/summary.unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
+    "title": "unitdid",
+    "section": "",
+    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\n## S3 method for class 'unitdid'\nsummary(object, ...)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\n…\n\n\naggregate_unitdid arguments\n\n\n\n\n\n\nA tibble with the summary statistics\n\n\n\n\nlibrary(\"unitdid\")\n\nlibrary(unitdid)\nmdl_base &lt;- base_heterocp |&gt;\n  unitdid(yname = \"y\",\n          iname = \"id\",\n          tname = \"year\",\n          ename = \"cyear\",\n          bname = \"byear\")\nsummary(mdl_base, agg = \"event_age\")\n\n# A tibble: 144 × 4\n      mean rel_time     n event_age\n     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;     &lt;int&gt;\n 1 -0.0344        0    13        15\n 2 -0.0860        0    42        16\n 3 -0.170         0    59        17\n 4 -0.141         0    79        18\n 5 -0.0883        0    99        19\n 6 -0.0689        0   107        20\n 7 -0.115         0   158        21\n 8 -0.0684        0   165        22\n 9 -0.0778        0   168        23\n10 -0.0567        0   206        24\n# ℹ 134 more rows",
+    "crumbs": [
+      "Reference",
+      "summary.unitdid"
     ]
   },
   {
@@ -87,11 +168,55 @@
     ]
   },
   {
+    "objectID": "man/gen_heterocp.html",
+    "href": "man/gen_heterocp.html",
+    "title": "unitdid",
+    "section": "",
+    "text": "Generate Sample Heterogenous Child Penalty Data\n\n\n\ngen_heterocp(size_cohort = 300)\n\n\n\n\n\n\n\nsize_cohort\n\n\nn_obsumber of individuals per birth year\n\n\n\n\n\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n\nlibrary(\"unitdid\")\n\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()",
+    "crumbs": [
+      "Reference",
+      "gen_heterocp"
+    ]
+  },
+  {
+    "objectID": "man/gen_heterocp.html#generate-sample-heterogenous-child-penalty-data",
+    "href": "man/gen_heterocp.html#generate-sample-heterogenous-child-penalty-data",
+    "title": "unitdid",
+    "section": "",
+    "text": "Generate Sample Heterogenous Child Penalty Data\n\n\n\ngen_heterocp(size_cohort = 300)\n\n\n\n\n\n\n\nsize_cohort\n\n\nn_obsumber of individuals per birth year\n\n\n\n\n\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n\nlibrary(\"unitdid\")\n\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()",
+    "crumbs": [
+      "Reference",
+      "gen_heterocp"
+    ]
+  },
+  {
+    "objectID": "man/aggregate_unitdid.html",
+    "href": "man/aggregate_unitdid.html",
+    "title": "unitdid",
+    "section": "",
+    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\naggregate_unitdid(\n  object,\n  agg = \"full\",\n  na.rm = TRUE,\n  by = NULL,\n  normalized = NULL,\n  allow_negative_var = FALSE,\n  only_full_horizon = TRUE\n)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\nagg\n\n\nAggregation method. One of c(“full”, “event”, “event_age”) and the default is full. If by is provided in the model, all the options will separately aggregate by its group. The event option aggregates by the group of the event timing. The event_age option aggregates by the group of the age at the event time. event_age requires the bname to be provided in the model.\n\n\n\n\nna.rm\n\n\nLogical. If TRUE, remove NA values for the aggregation. The default is TRUE.\n\n\n\n\nby\n\n\nA character vector of variables to aggregate separately by. Default is inherited from the unitdid object but you can override it here. You can estimate the unit-level DiD effects separately by by in unitdid but you can also aggregate the estimates by (higher-level) by here. You can use \"rel_time\" as the highest level of aggregation.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the aggregated mean and variance by the mean of the imputed outcome variable. Default is inherited from the unitdid object.\n\n\n\n\nallow_negative_var\n\n\nLogical. If FALSE, the function will return the estimated variance trimmed at zero. Default is FALSE.\n\n\n\n\nonly_full_horizon\n\n\nLogical. If TRUE, when you aggregate the unit-level treatment effect, only the event year (ename) with full horizon (k_min:k_max) will be included. This is recommended in the case that you do not want to change the composition of the event year (or age for the child penalties) for each estimated point in k_min:k_max. Default is TRUE.\n\n\n\n\n\n\nA tibble with the aggregated mean and variance of the estimated unit-level DiD effects",
+    "crumbs": [
+      "Reference",
+      "aggregate_unitdid"
+    ]
+  },
+  {
+    "objectID": "man/aggregate_unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
+    "href": "man/aggregate_unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
+    "title": "unitdid",
+    "section": "",
+    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\naggregate_unitdid(\n  object,\n  agg = \"full\",\n  na.rm = TRUE,\n  by = NULL,\n  normalized = NULL,\n  allow_negative_var = FALSE,\n  only_full_horizon = TRUE\n)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\nagg\n\n\nAggregation method. One of c(“full”, “event”, “event_age”) and the default is full. If by is provided in the model, all the options will separately aggregate by its group. The event option aggregates by the group of the event timing. The event_age option aggregates by the group of the age at the event time. event_age requires the bname to be provided in the model.\n\n\n\n\nna.rm\n\n\nLogical. If TRUE, remove NA values for the aggregation. The default is TRUE.\n\n\n\n\nby\n\n\nA character vector of variables to aggregate separately by. Default is inherited from the unitdid object but you can override it here. You can estimate the unit-level DiD effects separately by by in unitdid but you can also aggregate the estimates by (higher-level) by here. You can use \"rel_time\" as the highest level of aggregation.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the aggregated mean and variance by the mean of the imputed outcome variable. Default is inherited from the unitdid object.\n\n\n\n\nallow_negative_var\n\n\nLogical. If FALSE, the function will return the estimated variance trimmed at zero. Default is FALSE.\n\n\n\n\nonly_full_horizon\n\n\nLogical. If TRUE, when you aggregate the unit-level treatment effect, only the event year (ename) with full horizon (k_min:k_max) will be included. This is recommended in the case that you do not want to change the composition of the event year (or age for the child penalties) for each estimated point in k_min:k_max. Default is TRUE.\n\n\n\n\n\n\nA tibble with the aggregated mean and variance of the estimated unit-level DiD effects",
+    "crumbs": [
+      "Reference",
+      "aggregate_unitdid"
+    ]
+  },
+  {
     "objectID": "man/unitdid.html",
     "href": "man/unitdid.html",
     "title": "unitdid",
     "section": "",
-    "text": "A function estimates unit-level difference-in-differences\n\n\n\nunitdid(\n  data,\n  yname,\n  iname,\n  tname,\n  ename,\n  first_stage = NULL,\n  wname = NULL,\n  ytildename = NULL,\n  yvarname = NULL,\n  ycovname = NULL,\n  kprimename = \"kprime\",\n  k_min = 0,\n  k_max = 5,\n  compute_varcov = \"none\",\n  by = NULL,\n  bname = NULL,\n  normalized = FALSE\n)\n\n\n\n\n\n\n\ndata\n\n\nThe dataframe containing all the variables\n\n\n\n\nyname\n\n\nOutcome variable\n\n\n\n\niname\n\n\nUnit identifier\n\n\n\n\ntname\n\n\nTime variable\n\n\n\n\nename\n\n\nEvent timing variable\n\n\n\n\nfirst_stage\n\n\nFormula for Y(0). Formula follows fixest::feols. If not specified, unit (iname) and time (tname) fixed effects will be used.\n\n\n\n\nwname\n\n\nOptional. The name of the weight variable.\n\n\n\n\nytildename\n\n\nOptional. The name of the imputed outcome variable. If not provided, the function will use paste0(yname, “_tilde”).\n\n\n\n\nyvarname\n\n\nOptional. The name of the unit-level variance of the outcome variable. If not provided, the function will use paste0(yname, “_var”).\n\n\n\n\nycovname\n\n\nOptional. The name of the unit-level covariance of the outcome variable. If not provided, the function will use paste0(yname, “_cov”).\n\n\n\n\nkprimename\n\n\nOptional. The name of the relative time to treatment. This is used for the second column name of the relative time of the unit-level covariance estimation. Default is \"kprime\".\n\n\n\n\nk_min\n\n\nRelative time to treatment at which treatment starts. Default is 0.\n\n\n\n\nk_max\n\n\nRelative time to treatment at which treatment ends. Default is 5.\n\n\n\n\ncompute_varcov\n\n\nOne of c(\"none\", \"var\", \"cov\") and Default is \"none\". If \"var\", the function will estimate the unit-level variance of the outcome variable. If \"cov\", the function will estimate the unit-level covariance of the outcome variable for each pair within k_min:k_max.\n\n\n\n\nby\n\n\nA character vector of variables to estimate separately by. Default is NULL.\n\n\n\n\nbname\n\n\nBirth year variable. Default is NULL. Necessary to aggregate the estimates by age at event.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the outcome variable scale. Default is FALSE.\n\n\n\n\n\n\nA unitdid class object.",
+    "text": "A function estimates unit-level difference-in-differences\n\n\n\nunitdid(\n  data,\n  yname,\n  iname,\n  tname,\n  ename,\n  first_stage = NULL,\n  wname = NULL,\n  k_min = 0,\n  k_max = 5,\n  compute_varcov = \"none\",\n  by = NULL,\n  bname = NULL,\n  normalized = FALSE,\n  newnames = NULL\n)\n\n\n\n\n\n\n\ndata\n\n\nThe dataframe containing all the variables\n\n\n\n\nyname\n\n\nOutcome variable\n\n\n\n\niname\n\n\nUnit identifier\n\n\n\n\ntname\n\n\nTime variable\n\n\n\n\nename\n\n\nEvent timing variable\n\n\n\n\nfirst_stage\n\n\nFormula for Y(0). Formula follows fixest::feols. If not specified, unit (iname) and time (tname) fixed effects will be used.\n\n\n\n\nwname\n\n\nOptional. The name of the weight variable.\n\n\n\n\nk_min\n\n\nRelative time to treatment at which treatment starts. Default is 0.\n\n\n\n\nk_max\n\n\nRelative time to treatment at which treatment ends. Default is 5.\n\n\n\n\ncompute_varcov\n\n\nOne of c(\"none\", \"var\", \"cov\") and Default is \"none\". If \"var\", the function will estimate the unit-level variance of the outcome variable. If \"cov\", the function will estimate the unit-level covariance of the outcome variable for each pair within k_min:k_max.\n\n\n\n\nby\n\n\nA character vector of variables to estimate separately by. Default is NULL.\n\n\n\n\nbname\n\n\nBirth year variable. Default is NULL. Necessary to aggregate the estimates by age at event.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the outcome variable scale. Default is FALSE.\n\n\n\n\nnewnames\n\n\nOptional. A list of new names for the output variables. ytildename is the name of the imputed outcome variable. Default is paste0(yname, “_tilde”). yvarname is the name of the unit-level variance of the outcome variable. Default is paste0(yname, “_var”). yvarrawname is the name of the raw unit-level variance of the outcome variable, which is the variance before subtracting the variance of the measurement error. Default is paste0(yname, “_varraw”). yvarerrname is the name of the unit-level variance of the measurement error. Default is paste0(yname, “_varerr”). ycovname is the name of the unit-level covariance of the outcome variable. Default is paste0(yname, “_cov”). ycovrawname is the name of the raw unit-level covariance of the outcome variable, which is the covariance before subtracting the covariance of the measurement error. Default is paste0(yname, “_covraw”). ycoverrname is the name of the unit-level covariance of the measurement error. Default is paste0(yname, “_coverr”). kprimename is the name of the relative time to treatment. This is used for the second column name of the relative time of the unit-level covariance estimation. Default is \"kprime\".\n\n\n\n\n\n\nA unitdid class object.",
     "crumbs": [
       "Reference",
       "unitdid"
@@ -102,10 +227,75 @@
     "href": "man/unitdid.html#a-function-estimates-unit-level-difference-in-differences",
     "title": "unitdid",
     "section": "",
-    "text": "A function estimates unit-level difference-in-differences\n\n\n\nunitdid(\n  data,\n  yname,\n  iname,\n  tname,\n  ename,\n  first_stage = NULL,\n  wname = NULL,\n  ytildename = NULL,\n  yvarname = NULL,\n  ycovname = NULL,\n  kprimename = \"kprime\",\n  k_min = 0,\n  k_max = 5,\n  compute_varcov = \"none\",\n  by = NULL,\n  bname = NULL,\n  normalized = FALSE\n)\n\n\n\n\n\n\n\ndata\n\n\nThe dataframe containing all the variables\n\n\n\n\nyname\n\n\nOutcome variable\n\n\n\n\niname\n\n\nUnit identifier\n\n\n\n\ntname\n\n\nTime variable\n\n\n\n\nename\n\n\nEvent timing variable\n\n\n\n\nfirst_stage\n\n\nFormula for Y(0). Formula follows fixest::feols. If not specified, unit (iname) and time (tname) fixed effects will be used.\n\n\n\n\nwname\n\n\nOptional. The name of the weight variable.\n\n\n\n\nytildename\n\n\nOptional. The name of the imputed outcome variable. If not provided, the function will use paste0(yname, “_tilde”).\n\n\n\n\nyvarname\n\n\nOptional. The name of the unit-level variance of the outcome variable. If not provided, the function will use paste0(yname, “_var”).\n\n\n\n\nycovname\n\n\nOptional. The name of the unit-level covariance of the outcome variable. If not provided, the function will use paste0(yname, “_cov”).\n\n\n\n\nkprimename\n\n\nOptional. The name of the relative time to treatment. This is used for the second column name of the relative time of the unit-level covariance estimation. Default is \"kprime\".\n\n\n\n\nk_min\n\n\nRelative time to treatment at which treatment starts. Default is 0.\n\n\n\n\nk_max\n\n\nRelative time to treatment at which treatment ends. Default is 5.\n\n\n\n\ncompute_varcov\n\n\nOne of c(\"none\", \"var\", \"cov\") and Default is \"none\". If \"var\", the function will estimate the unit-level variance of the outcome variable. If \"cov\", the function will estimate the unit-level covariance of the outcome variable for each pair within k_min:k_max.\n\n\n\n\nby\n\n\nA character vector of variables to estimate separately by. Default is NULL.\n\n\n\n\nbname\n\n\nBirth year variable. Default is NULL. Necessary to aggregate the estimates by age at event.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the outcome variable scale. Default is FALSE.\n\n\n\n\n\n\nA unitdid class object.",
+    "text": "A function estimates unit-level difference-in-differences\n\n\n\nunitdid(\n  data,\n  yname,\n  iname,\n  tname,\n  ename,\n  first_stage = NULL,\n  wname = NULL,\n  k_min = 0,\n  k_max = 5,\n  compute_varcov = \"none\",\n  by = NULL,\n  bname = NULL,\n  normalized = FALSE,\n  newnames = NULL\n)\n\n\n\n\n\n\n\ndata\n\n\nThe dataframe containing all the variables\n\n\n\n\nyname\n\n\nOutcome variable\n\n\n\n\niname\n\n\nUnit identifier\n\n\n\n\ntname\n\n\nTime variable\n\n\n\n\nename\n\n\nEvent timing variable\n\n\n\n\nfirst_stage\n\n\nFormula for Y(0). Formula follows fixest::feols. If not specified, unit (iname) and time (tname) fixed effects will be used.\n\n\n\n\nwname\n\n\nOptional. The name of the weight variable.\n\n\n\n\nk_min\n\n\nRelative time to treatment at which treatment starts. Default is 0.\n\n\n\n\nk_max\n\n\nRelative time to treatment at which treatment ends. Default is 5.\n\n\n\n\ncompute_varcov\n\n\nOne of c(\"none\", \"var\", \"cov\") and Default is \"none\". If \"var\", the function will estimate the unit-level variance of the outcome variable. If \"cov\", the function will estimate the unit-level covariance of the outcome variable for each pair within k_min:k_max.\n\n\n\n\nby\n\n\nA character vector of variables to estimate separately by. Default is NULL.\n\n\n\n\nbname\n\n\nBirth year variable. Default is NULL. Necessary to aggregate the estimates by age at event.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the outcome variable scale. Default is FALSE.\n\n\n\n\nnewnames\n\n\nOptional. A list of new names for the output variables. ytildename is the name of the imputed outcome variable. Default is paste0(yname, “_tilde”). yvarname is the name of the unit-level variance of the outcome variable. Default is paste0(yname, “_var”). yvarrawname is the name of the raw unit-level variance of the outcome variable, which is the variance before subtracting the variance of the measurement error. Default is paste0(yname, “_varraw”). yvarerrname is the name of the unit-level variance of the measurement error. Default is paste0(yname, “_varerr”). ycovname is the name of the unit-level covariance of the outcome variable. Default is paste0(yname, “_cov”). ycovrawname is the name of the raw unit-level covariance of the outcome variable, which is the covariance before subtracting the covariance of the measurement error. Default is paste0(yname, “_covraw”). ycoverrname is the name of the unit-level covariance of the measurement error. Default is paste0(yname, “_coverr”). kprimename is the name of the relative time to treatment. This is used for the second column name of the relative time of the unit-level covariance estimation. Default is \"kprime\".\n\n\n\n\n\n\nA unitdid class object.",
     "crumbs": [
       "Reference",
       "unitdid"
+    ]
+  },
+  {
+    "objectID": "man/base_heterocp.html",
+    "href": "man/base_heterocp.html",
+    "title": "unitdid",
+    "section": "",
+    "text": "Simulated Individual Child Panalty Data\n\n\n\nbase_heterocp\n\n\n\n\n\nA dataframe with 1000 individuals for each birth year from 1965 to 1984:\n\n\nid\n\n\nIndividual identifier\n\n\nyear\n\n\nYear of observation\n\n\nbyear\n\n\nBirth year\n\n\ncage\n\n\nAge at first birth\n\n\nrel_time\n\n\nRelative time to first birth\n\n\ny\n\n\nOutcome variable\n\n\n\n\n\nGenerated by gen_heterocp() with seed 1234",
+    "crumbs": [
+      "Reference",
+      "base_heterocp"
+    ]
+  },
+  {
+    "objectID": "man/base_heterocp.html#simulated-individual-child-panalty-data",
+    "href": "man/base_heterocp.html#simulated-individual-child-panalty-data",
+    "title": "unitdid",
+    "section": "",
+    "text": "Simulated Individual Child Panalty Data\n\n\n\nbase_heterocp\n\n\n\n\n\nA dataframe with 1000 individuals for each birth year from 1965 to 1984:\n\n\nid\n\n\nIndividual identifier\n\n\nyear\n\n\nYear of observation\n\n\nbyear\n\n\nBirth year\n\n\ncage\n\n\nAge at first birth\n\n\nrel_time\n\n\nRelative time to first birth\n\n\ny\n\n\nOutcome variable\n\n\n\n\n\nGenerated by gen_heterocp() with seed 1234",
+    "crumbs": [
+      "Reference",
+      "base_heterocp"
+    ]
+  },
+  {
+    "objectID": "CITATION.html",
+    "href": "CITATION.html",
+    "title": "Citation",
+    "section": "",
+    "text": "Citation\nTo cite package ‘unitdid’ in publications use:\n\nYanagimoto K (????). unitdid: Unit-level Difference-in-Difference Estimator. R package version 0.0.6, https://github.com/kazuyanagimoto/unitdid/, https://kazuyanagimoto.com/unitdid/.",
+    "crumbs": [
+      "Citation"
+    ]
+  },
+  {
+    "objectID": "vignettes/base_heterocp.html",
+    "href": "vignettes/base_heterocp.html",
+    "title": "Data Generation Process of base_heterocp",
+    "section": "",
+    "text": "library(unitdid)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(purrr)",
+    "crumbs": [
+      "Articles",
+      "Data Generation Process of base_heterocp"
+    ]
+  },
+  {
+    "objectID": "vignettes/base_heterocp.html#data-generation-process",
+    "href": "vignettes/base_heterocp.html#data-generation-process",
+    "title": "Data Generation Process of base_heterocp",
+    "section": "Data Generation Process",
+    "text": "Data Generation Process\nThe sample data set base_heterocp is generated by unitdid::gen_heterocp() with seed 1234.\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()\nInside the function gen_heterocp(), the following steps are performed.\n\n1. Generate \\(i = \\{1, \\dots, 1000\\}\\) individuals\nGenerate \\(i = \\{1, \\dots, 1000\\}\\) individuals with age at child birth \\(a_i\\) from a multinomial distribution of \\(f(a)\\).\n\\[\nf(a) = \\begin{cases}\n\\frac{a - 14}{15 \\cdot 16} & \\text{if } a \\in \\{15, \\dots, 29\\} \\\\\n\\frac{45 - a}{15 \\cdot 16} & \\text{if } a \\in \\{30, \\dots, 44\\} \\\\\n\\end{cases}\n\\]\n\n\nCode\nbase_heterocp |&gt;\n  distinct(id, .keep_all = TRUE) |&gt;\n  mutate(event_age = cyear - byear) |&gt;\n  summarize(n = n(), .by = event_age) |&gt;\n  mutate(density = n / sum(n)) |&gt;\n  ggplot(aes(x = event_age, y = density)) +\n  geom_col() +\n  labs(x = \"Age at First Childbirth\", y = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank())\n\n\n\n\n\n\n\n\n\n\n\n2. Generate Individual FE \\(\\alpha_i\\) and Time FE \\(\\lambda_t\\)\nGenerate individual fixed effects \\(\\alpha_i\\) and time fixed effects \\(\\lambda_t\\) from normal distributions.\n\\[\n\\alpha_{i} \\sim \\mathcal{N}(0.15, 0.1),\\, \\lambda_{t} \\sim \\mathcal{N}(0, 0.1)\n\\]\n\n\n3. Generate Heterogeneous Treatment Effect \\(\\tau_{i, k}\\)\nFor individual \\(i\\) with age at first childbirth \\(a_i\\), draw \\(\\tau_{i, k} \\sim \\mathcal{N}(\\mu(a_i, k), \\sigma(a_i, k))\\) where\n\\[\n\\begin{aligned}\n\\mu(a) &= -1.2 + 0.3\\log(a) \\\\\n\\sigma(a) &= 2.8 - 0.8\\log(a) \\\\\n\\mu(a, k) &= \\begin{cases}\n\\frac{1}{3}\\mu(a) & \\text{if } k = 0 \\\\\n\\mu(a) & \\text{if } k = 1 \\\\\n0.05 + 1.5\\mu(a) - 0.01k & \\text{if } k \\ge 2 \\\\\n\\end{cases} \\\\\n\\sigma(a, k) &= \\begin{cases}\n\\frac{1}{3}\\sigma(a) & \\text{if } k = 0 \\\\\n\\sigma(a) & \\text{if } k = 1 \\\\\n0.01 + \\sigma(a) + 0.01k & \\text{if } k \\ge 2 \\\\\n\\end{cases}\n\\end{aligned}\n\\]\n\n\n4. Generate Outcome \\(y_{it}\\)\n\\[\ny_{it} = \\alpha_i + \\lambda_t + \\tau_{i, k} + \\varepsilon_{it}\n\\]\nwhere \\(\\varepsilon_{it} \\sim \\mathcal{N}(0, 025)\\).",
+    "crumbs": [
+      "Articles",
+      "Data Generation Process of base_heterocp"
+    ]
+  },
+  {
+    "objectID": "vignettes/base_heterocp.html#simulation",
+    "href": "vignettes/base_heterocp.html#simulation",
+    "title": "Data Generation Process of base_heterocp",
+    "section": "Simulation",
+    "text": "Simulation\nTo see its estimation properties, I simulate the data set 100 times and compare the true values with the mean, 2.5% quantile, and 97.5% quantile of the estimated values.\n\n\nCode\nset.seed(1234)\nn_sim &lt;- 100\n\nsim &lt;- function() {\n  mdl_base &lt;- gen_heterocp(size_cohort = 1000) |&gt;\n    unitdid(yname = \"y\",\n          iname = \"id\",\n          tname = \"year\",\n          ename = \"cyear\",\n          bname = \"byear\",\n          compute_varcov = \"var\")\n\n  summary(mdl_base, agg = \"event_age\")\n}\n\npath_sim &lt;- here::here(\"vignettes/simulated.rds\")\n\nif (!file.exists(path_sim)) {\n  simulated &lt;- map(1:n_sim, ~sim(), .progress = TRUE) |&gt;\n    list_rbind()\n  save(simulated, file = path_sim)\n} else {\n  load(path_sim)\n}\n\n\n\n\nCode\nval_true &lt;- tibble(\n  event_age = 25:34,\n  tau1 = -1.2 + 0.3 * log(event_age),\n  sd1 = 3 - 0.75 * log(event_age)) |&gt;\n  slice(rep(1:n(), each = 6)) |&gt;\n  mutate(rel_time = rep(0:5, 10),\n         mean = case_when(\n           rel_time == 0 ~ tau1 / 3,\n           rel_time == 1 ~ tau1,\n           rel_time &gt; 1 ~ 0.05 + 1.5 * tau1 - 0.02 * rel_time),\n         sd = case_when(\n            rel_time == 0 ~ sd1 / 3,\n            rel_time == 1 ~ sd1,\n            rel_time &gt; 1 ~ 0.01 + sd1 + 0.02 * rel_time),\n         lbl = \"Truth\") |&gt;\n  select(-c(tau1, sd1))\n\ndf_plot &lt;- simulated |&gt;\n  mutate(sd = sqrt(var)) |&gt;\n  summarize(across(c(mean, sd),\n                   list(\"lci\" = ~quantile(.x, 0.025),\n                        \"rci\" = ~quantile(.x, 0.975))),\n            across(c(mean, sd), mean),\n            .by = c(event_age, rel_time)) |&gt;\n  mutate(lbl = \"Simulation\") |&gt;\n  bind_rows(val_true) |&gt;\n  mutate(lbl_facet = paste0(\"Age \", event_age)) |&gt;\n  filter(between(event_age, 25, 34))\n\n\n\nMean of \\(\\tau_{ik}\\)\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = mean,\n             ymin = mean_lci, ymax = mean_rci,\n             color = lbl, shape = lbl)) +\n  geom_point(position = position_dodge(width = 0.3)) +\n  geom_errorbar(width = 0.2,\n                position = position_dodge(width = 0.3)) +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  facet_wrap(~lbl_facet, ncol = 5) +\n  labs(x = \"Time to Treatment\", y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\n\n\nStandard Deviation of \\(\\tau_{ik}\\)\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = sd,\n             ymin = sd_lci, ymax = sd_rci,\n             color = lbl, shape = lbl)) +\n  geom_point(position = position_dodge(width = 0.3)) +\n  geom_errorbar(width = 0.2,\n                position = position_dodge(width = 0.3)) +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  facet_wrap(~lbl_facet, ncol = 5) +\n  labs(x = \"Time to Treatment\", y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")",
+    "crumbs": [
+      "Articles",
+      "Data Generation Process of base_heterocp"
     ]
   },
   {
@@ -146,175 +336,6 @@
     "text": "Arkhangelsky, Dmitry, Kazuharu Yanagimoto, and Tom Zohar. 2024. “Flexible Analysis of Individual Heterogeneity in Event Studies: Application to the Child Penalty.” arXiv. https://arxiv.org/abs/2403.19563.",
     "crumbs": [
       "Home"
-    ]
-  },
-  {
-    "objectID": "NEWS.html",
-    "href": "NEWS.html",
-    "title": "News",
-    "section": "",
-    "text": "New Features:\n\nSupport for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix\nAdd only_full_horizon option for get_unitdid()\n\n\n\n\nNew Features:\n\nSupport for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation\nAdd allow_negative_var option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).\n\nBug Fixes:\n\nMeasurement error (zz000varcont in the code) is not esimated with weights (#11)\n\n\n\n\nNew Features:\n\nSupport for first_stage argument for more parametric first stage estimation\nSupport for by argument for aggregation\n\nBug Fixes:\n\nBug when data[[yname]] includes NA values\nBug when variance estimation includes NA values (v0.0.3.1)\nBug when by does not have a higher category (v0.0.3.2)\n\n\n\n\nNew Features:\n\nSupport for wname argument for weighted estimation\n\nBug Fixes:\n\nNormalization in summary when normalized = FALSE in the model\nBug when data[[tname]] includes NA values\n\n\n\n\n\nInitial GitHub submission",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "NEWS.html#section",
-    "href": "NEWS.html#section",
-    "title": "News",
-    "section": "",
-    "text": "New Features:\n\nSupport for unit-level covariance estimation, which allows for more flexible aggregation using the covariance matrix\nAdd only_full_horizon option for get_unitdid()",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "NEWS.html#section-1",
-    "href": "NEWS.html#section-1",
-    "title": "News",
-    "section": "",
-    "text": "New Features:\n\nSupport for unit-level variance estimation, which allows for more flexible aggregation of the variance estimation\nAdd allow_negative_var option to allow for negative variance estimation, which used to be automatically trimmed at 0 (v0.0.4.1).\n\nBug Fixes:\n\nMeasurement error (zz000varcont in the code) is not esimated with weights (#11)",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "NEWS.html#section-2",
-    "href": "NEWS.html#section-2",
-    "title": "News",
-    "section": "",
-    "text": "New Features:\n\nSupport for first_stage argument for more parametric first stage estimation\nSupport for by argument for aggregation\n\nBug Fixes:\n\nBug when data[[yname]] includes NA values\nBug when variance estimation includes NA values (v0.0.3.1)\nBug when by does not have a higher category (v0.0.3.2)",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "NEWS.html#section-3",
-    "href": "NEWS.html#section-3",
-    "title": "News",
-    "section": "",
-    "text": "New Features:\n\nSupport for wname argument for weighted estimation\n\nBug Fixes:\n\nNormalization in summary when normalized = FALSE in the model\nBug when data[[tname]] includes NA values",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "NEWS.html#section-4",
-    "href": "NEWS.html#section-4",
-    "title": "News",
-    "section": "",
-    "text": "Initial GitHub submission",
-    "crumbs": [
-      "News"
-    ]
-  },
-  {
-    "objectID": "LICENSE.html",
-    "href": "LICENSE.html",
-    "title": "MIT License",
-    "section": "",
-    "text": "MIT License\nCopyright (c) 2023 Kazuharu Yanagimoto\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-    "crumbs": [
-      "License"
-    ]
-  },
-  {
-    "objectID": "man/summary.unitdid.html",
-    "href": "man/summary.unitdid.html",
-    "title": "unitdid",
-    "section": "",
-    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\n## S3 method for class 'unitdid'\nsummary(object, ...)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\n…\n\n\naggregate_unitdid arguments\n\n\n\n\n\n\nA tibble with the summary statistics\n\n\n\n\nlibrary(unitdid)\n\nlibrary(unitdid)\nmdl_base &lt;- base_heterocp |&gt;\n  unitdid(yname = \"y\",\n        iname = \"id\",\n        tname = \"year\",\n        ename = \"cyear\",\n        bname = \"byear\")\nsummary(mdl_base, agg = \"event_age\")\n\n# A tibble: 144 × 4\n      mean rel_time     n event_age\n     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;     &lt;int&gt;\n 1 -0.0344        0    13        15\n 2 -0.0860        0    42        16\n 3 -0.170         0    59        17\n 4 -0.141         0    79        18\n 5 -0.0883        0    99        19\n 6 -0.0689        0   107        20\n 7 -0.115         0   158        21\n 8 -0.0684        0   165        22\n 9 -0.0778        0   168        23\n10 -0.0567        0   206        24\n# ℹ 134 more rows",
-    "crumbs": [
-      "Reference",
-      "summary.unitdid"
-    ]
-  },
-  {
-    "objectID": "man/summary.unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
-    "href": "man/summary.unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
-    "title": "unitdid",
-    "section": "",
-    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\n## S3 method for class 'unitdid'\nsummary(object, ...)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\n…\n\n\naggregate_unitdid arguments\n\n\n\n\n\n\nA tibble with the summary statistics\n\n\n\n\nlibrary(unitdid)\n\nlibrary(unitdid)\nmdl_base &lt;- base_heterocp |&gt;\n  unitdid(yname = \"y\",\n        iname = \"id\",\n        tname = \"year\",\n        ename = \"cyear\",\n        bname = \"byear\")\nsummary(mdl_base, agg = \"event_age\")\n\n# A tibble: 144 × 4\n      mean rel_time     n event_age\n     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;     &lt;int&gt;\n 1 -0.0344        0    13        15\n 2 -0.0860        0    42        16\n 3 -0.170         0    59        17\n 4 -0.141         0    79        18\n 5 -0.0883        0    99        19\n 6 -0.0689        0   107        20\n 7 -0.115         0   158        21\n 8 -0.0684        0   165        22\n 9 -0.0778        0   168        23\n10 -0.0567        0   206        24\n# ℹ 134 more rows",
-    "crumbs": [
-      "Reference",
-      "summary.unitdid"
-    ]
-  },
-  {
-    "objectID": "man/gen_heterocp.html",
-    "href": "man/gen_heterocp.html",
-    "title": "unitdid",
-    "section": "",
-    "text": "Generate Sample Heterogenous Child Penalty Data\n\n\n\ngen_heterocp(size_cohort = 300)\n\n\n\n\n\n\n\nsize_cohort\n\n\nn_obsumber of individuals per birth year\n\n\n\n\n\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n\nlibrary(unitdid)\n\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()",
-    "crumbs": [
-      "Reference",
-      "gen_heterocp"
-    ]
-  },
-  {
-    "objectID": "man/gen_heterocp.html#generate-sample-heterogenous-child-penalty-data",
-    "href": "man/gen_heterocp.html#generate-sample-heterogenous-child-penalty-data",
-    "title": "unitdid",
-    "section": "",
-    "text": "Generate Sample Heterogenous Child Penalty Data\n\n\n\ngen_heterocp(size_cohort = 300)\n\n\n\n\n\n\n\nsize_cohort\n\n\nn_obsumber of individuals per birth year\n\n\n\n\n\n\nA sample dataframe with heterogenous child penalty over the age at first birth\n\n\n\n\nlibrary(unitdid)\n\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()",
-    "crumbs": [
-      "Reference",
-      "gen_heterocp"
-    ]
-  },
-  {
-    "objectID": "man/aggregate_unitdid.html",
-    "href": "man/aggregate_unitdid.html",
-    "title": "unitdid",
-    "section": "",
-    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\naggregate_unitdid(\n  object,\n  agg = \"full\",\n  na.rm = TRUE,\n  by = NULL,\n  normalized = NULL,\n  allow_negative_var = FALSE,\n  only_full_horizon = TRUE\n)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\nagg\n\n\nAggregation method. One of c(“full”, “event”, “event_age”) and the default is full. If by is provided in the model, all the options will separately aggregate by its group. The event option aggregates by the group of the event timing. The event_age option aggregates by the group of the age at the event time. event_age requires the bname to be provided in the model.\n\n\n\n\nna.rm\n\n\nLogical. If TRUE, remove NA values for the aggregation. The default is TRUE.\n\n\n\n\nby\n\n\nA character vector of variables to aggregate separately by. Default is inherited from the unitdid object but you can override it here. You can estimate the unit-level DiD effects separately by by in unitdid but you can also aggregate the estimates by (higher-level) by here. You can use \"rel_time\" as the highest level of aggregation.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the aggregated mean and variance by the mean of the imputed outcome variable. Default is inherited from the unitdid object.\n\n\n\n\nallow_negative_var\n\n\nLogical. If FALSE, the function will return the estimated variance trimmed at zero. Default is FALSE.\n\n\n\n\nonly_full_horizon\n\n\nLogical. If TRUE, when you aggregate the unit-level treatment effect, only the event year (ename) with full horizon (k_min:k_max) will be included. This is recommended in the case that you do not want to change the composition of the event year (or age for the child penalties) for each estimated point in k_min:k_max. Default is TRUE.\n\n\n\n\n\n\nA tibble with the aggregated mean and variance of the estimated unit-level DiD effects",
-    "crumbs": [
-      "Reference",
-      "aggregate_unitdid"
-    ]
-  },
-  {
-    "objectID": "man/aggregate_unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
-    "href": "man/aggregate_unitdid.html#aggregate-the-mean-and-variance-of-the-estimated-unit-level-did-effects",
-    "title": "unitdid",
-    "section": "",
-    "text": "Aggregate the mean and variance of the estimated unit-level DiD effects\n\n\n\naggregate_unitdid(\n  object,\n  agg = \"full\",\n  na.rm = TRUE,\n  by = NULL,\n  normalized = NULL,\n  allow_negative_var = FALSE,\n  only_full_horizon = TRUE\n)\n\n\n\n\n\n\n\nobject\n\n\nunitdid object\n\n\n\n\nagg\n\n\nAggregation method. One of c(“full”, “event”, “event_age”) and the default is full. If by is provided in the model, all the options will separately aggregate by its group. The event option aggregates by the group of the event timing. The event_age option aggregates by the group of the age at the event time. event_age requires the bname to be provided in the model.\n\n\n\n\nna.rm\n\n\nLogical. If TRUE, remove NA values for the aggregation. The default is TRUE.\n\n\n\n\nby\n\n\nA character vector of variables to aggregate separately by. Default is inherited from the unitdid object but you can override it here. You can estimate the unit-level DiD effects separately by by in unitdid but you can also aggregate the estimates by (higher-level) by here. You can use \"rel_time\" as the highest level of aggregation.\n\n\n\n\nnormalized\n\n\nLogical. If TRUE, the function will normalize the aggregated mean and variance by the mean of the imputed outcome variable. Default is inherited from the unitdid object.\n\n\n\n\nallow_negative_var\n\n\nLogical. If FALSE, the function will return the estimated variance trimmed at zero. Default is FALSE.\n\n\n\n\nonly_full_horizon\n\n\nLogical. If TRUE, when you aggregate the unit-level treatment effect, only the event year (ename) with full horizon (k_min:k_max) will be included. This is recommended in the case that you do not want to change the composition of the event year (or age for the child penalties) for each estimated point in k_min:k_max. Default is TRUE.\n\n\n\n\n\n\nA tibble with the aggregated mean and variance of the estimated unit-level DiD effects",
-    "crumbs": [
-      "Reference",
-      "aggregate_unitdid"
-    ]
-  },
-  {
-    "objectID": "vignettes/base_heterocp.html",
-    "href": "vignettes/base_heterocp.html",
-    "title": "Data Generation Process of base_heterocp",
-    "section": "",
-    "text": "library(unitdid)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(purrr)",
-    "crumbs": [
-      "Articles",
-      "Data Generation Process of base_heterocp"
-    ]
-  },
-  {
-    "objectID": "vignettes/base_heterocp.html#data-generation-process",
-    "href": "vignettes/base_heterocp.html#data-generation-process",
-    "title": "Data Generation Process of base_heterocp",
-    "section": "Data Generation Process",
-    "text": "Data Generation Process\nThe sample data set base_heterocp is generated by unitdid::gen_heterocp() with seed 1234.\nset.seed(1234)\nbase_heterocp &lt;- gen_heterocp()\nInside the function gen_heterocp(), the following steps are performed.\n\n1. Generate \\(i = \\{1, \\dots, 1000\\}\\) individuals\nGenerate \\(i = \\{1, \\dots, 1000\\}\\) individuals with age at child birth \\(a_i\\) from a multinomial distribution of \\(f(a)\\).\n\\[\nf(a) = \\begin{cases}\n\\frac{a - 14}{15 \\cdot 16} & \\text{if } a \\in \\{15, \\dots, 29\\} \\\\\n\\frac{45 - a}{15 \\cdot 16} & \\text{if } a \\in \\{30, \\dots, 44\\} \\\\\n\\end{cases}\n\\]\n\n\nCode\nbase_heterocp |&gt;\n  distinct(id, .keep_all = TRUE) |&gt;\n  mutate(event_age = cyear - byear) |&gt;\n  summarize(n = n(), .by = event_age) |&gt;\n  mutate(density = n / sum(n)) |&gt;\n  ggplot(aes(x = event_age, y = density)) +\n  geom_col() +\n  labs(x = \"Age at First Childbirth\", y = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank())\n\n\n\n\n\n\n\n\n\n\n\n2. Generate Individual FE \\(\\alpha_i\\) and Time FE \\(\\lambda_t\\)\nGenerate individual fixed effects \\(\\alpha_i\\) and time fixed effects \\(\\lambda_t\\) from normal distributions.\n\\[\n\\alpha_{i} \\sim \\mathcal{N}(0.15, 0.1),\\, \\lambda_{t} \\sim \\mathcal{N}(0, 0.1)\n\\]\n\n\n3. Generate Heterogeneous Treatment Effect \\(\\tau_{i, k}\\)\nFor individual \\(i\\) with age at first childbirth \\(a_i\\), draw \\(\\tau_{i, k} \\sim \\mathcal{N}(\\mu(a_i, k), \\sigma(a_i, k))\\) where\n\\[\n\\begin{aligned}\n\\mu(a) &= -1.2 + 0.3\\log(a) \\\\\n\\sigma(a) &= 2.8 - 0.8\\log(a) \\\\\n\\mu(a, k) &= \\begin{cases}\n\\frac{1}{3}\\mu(a) & \\text{if } k = 0 \\\\\n\\mu(a) & \\text{if } k = 1 \\\\\n0.05 + 1.5\\mu(a) - 0.01k & \\text{if } k \\ge 2 \\\\\n\\end{cases} \\\\\n\\sigma(a, k) &= \\begin{cases}\n\\frac{1}{3}\\sigma(a) & \\text{if } k = 0 \\\\\n\\sigma(a) & \\text{if } k = 1 \\\\\n0.01 + \\sigma(a) + 0.01k & \\text{if } k \\ge 2 \\\\\n\\end{cases}\n\\end{aligned}\n\\]\n\n\n4. Generate Outcome \\(y_{it}\\)\n\\[\ny_{it} = \\alpha_i + \\lambda_t + \\tau_{i, k} + \\varepsilon_{it}\n\\]\nwhere \\(\\varepsilon_{it} \\sim \\mathcal{N}(0, 025)\\).",
-    "crumbs": [
-      "Articles",
-      "Data Generation Process of base_heterocp"
-    ]
-  },
-  {
-    "objectID": "vignettes/base_heterocp.html#simulation",
-    "href": "vignettes/base_heterocp.html#simulation",
-    "title": "Data Generation Process of base_heterocp",
-    "section": "Simulation",
-    "text": "Simulation\nTo see its estimation properties, I simulate the data set 100 times and compare the true values with the mean, 2.5% quantile, and 97.5% quantile of the estimated values.\n\n\nCode\nset.seed(1234)\nn_sim &lt;- 100\n\nsim &lt;- function() {\n  mdl_base &lt;- gen_heterocp(size_cohort = 1000) |&gt;\n    unitdid(yname = \"y\",\n          iname = \"id\",\n          tname = \"year\",\n          ename = \"cyear\",\n          bname = \"byear\",\n          compute_varcov = \"var\")\n\n  summary(mdl_base, agg = \"event_age\")\n}\n\npath_sim &lt;- here::here(\"vignettes/simulated.rds\")\n\nif (!file.exists(path_sim)) {\n  simulated &lt;- map(1:n_sim, ~sim(), .progress = TRUE) |&gt;\n    list_rbind()\n  save(simulated, file = path_sim)\n} else {\n  load(path_sim)\n}\n\n\n\n\nCode\nval_true &lt;- tibble(\n  event_age = 25:34,\n  tau1 = -1.2 + 0.3 * log(event_age),\n  sd1 = 3 - 0.75 * log(event_age)) |&gt;\n  slice(rep(1:n(), each = 6)) |&gt;\n  mutate(rel_time = rep(0:5, 10),\n         mean = case_when(\n           rel_time == 0 ~ tau1 / 3,\n           rel_time == 1 ~ tau1,\n           rel_time &gt; 1 ~ 0.05 + 1.5 * tau1 - 0.02 * rel_time),\n         sd = case_when(\n            rel_time == 0 ~ sd1 / 3,\n            rel_time == 1 ~ sd1,\n            rel_time &gt; 1 ~ 0.01 + sd1 + 0.02 * rel_time),\n         lbl = \"Truth\") |&gt;\n  select(-c(tau1, sd1))\n\ndf_plot &lt;- simulated |&gt;\n  mutate(sd = sqrt(var)) |&gt;\n  summarize(across(c(mean, sd),\n                   list(\"lci\" = ~quantile(.x, 0.025),\n                        \"rci\" = ~quantile(.x, 0.975))),\n            across(c(mean, sd), mean),\n            .by = c(event_age, rel_time)) |&gt;\n  mutate(lbl = \"Simulation\") |&gt;\n  bind_rows(val_true) |&gt;\n  mutate(lbl_facet = paste0(\"Age \", event_age)) |&gt;\n  filter(between(event_age, 25, 34))\n\n\n\nMean of \\(\\tau_{ik}\\)\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = mean,\n             ymin = mean_lci, ymax = mean_rci,\n             color = lbl, shape = lbl)) +\n  geom_point(position = position_dodge(width = 0.3)) +\n  geom_errorbar(width = 0.2,\n                position = position_dodge(width = 0.3)) +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  facet_wrap(~lbl_facet, ncol = 5) +\n  labs(x = \"Time to Treatment\", y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\n\n\nStandard Deviation of \\(\\tau_{ik}\\)\n\n\nCode\ndf_plot |&gt;\n  ggplot(aes(x = rel_time, y = sd,\n             ymin = sd_lci, ymax = sd_rci,\n             color = lbl, shape = lbl)) +\n  geom_point(position = position_dodge(width = 0.3)) +\n  geom_errorbar(width = 0.2,\n                position = position_dodge(width = 0.3)) +\n  geom_vline(xintercept = -1, linetype = \"dashed\") +\n  geom_hline(yintercept = 0) +\n  scale_color_manual(values = c(\"#009F8C\", \"#B75C9D\")) +\n  facet_wrap(~lbl_facet, ncol = 5) +\n  labs(x = \"Time to Treatment\", y = NULL,\n       color = NULL, shape = NULL) +\n  theme_minimal() +\n  theme(panel.grid.minor = element_blank(),\n        panel.grid.major.x = element_blank(),\n        legend.position = \"bottom\")",
-    "crumbs": [
-      "Articles",
-      "Data Generation Process of base_heterocp"
     ]
   }
 ]
