@@ -15,12 +15,13 @@ compute_projection <- function(object) {
   if (object$info$compute_varcov == "var") {
     object$data <- object$aggregated |>
       dplyr::select(object$info$by_est, object$info$ename, zz000k,
-                    zz000mean, zz000varcont) |>
+                    zz000mean, zz000varerr) |>
       dplyr::left_join(object$data,
                        by = c(object$info$by_est,
                               object$info$ename,
                               "zz000k")) |>
-      dplyr::mutate(zz000var = (zz000ytilde - zz000mean)^2 - zz000varcont)
+      dplyr::mutate(zz000varraw = (zz000ytilde - zz000mean)^2,
+                    zz000var = zz000varraw - zz000varerr)
 
   } else if (object$info$compute_varcov == "cov") {
 
@@ -35,12 +36,15 @@ compute_projection <- function(object) {
                                        zz000l = zz000k,
                                        zz000ytilde_l = zz000ytilde),
                        by = c(object$info$iname, "zz000l")) |>
-      dplyr::mutate(zz000cov = (zz000ytilde - zz000mean) *
-                    (zz000ytilde_l - zz000mean_l) - zz000covcont)
+      dplyr::mutate(zz000covraw = (zz000ytilde - zz000mean) *
+                      (zz000ytilde_l - zz000mean_l),
+                    zz000cov = zz000covraw - zz000coverr)
 
   } else {
     object$data <- object$data |>
-      dplyr::mutate(zz000var = NA_real_) # For its convenience in the summary
+      dplyr::mutate(zz000var = NA_real_,
+                    zz000varraw = NA_real_,
+                    zz000varerr = NA_real_) # For its convenience in the summary
   }
 
   return(object)
@@ -61,16 +65,16 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
   }
 
   if (compute_varcov == "var") {
-    covcont <- covcont_group(data, iname, tname, ename, k_min, k_max,
+    coverr <- coverr_group(data, iname, tname, ename, k_min, k_max,
                             compute_varcov)
     aggregated <- aggregated |>
-      dplyr::left_join(covcont, by = c(ename, "zz000k"))
+      dplyr::left_join(coverr, by = c(ename, "zz000k"))
   }
   if (compute_varcov == "cov") {
-    covcont <- covcont_group(data, iname, tname, ename, k_min, k_max,
+    coverr <- coverr_group(data, iname, tname, ename, k_min, k_max,
                              compute_varcov)
     aggregated <- aggregated |>
-      dplyr::left_join(covcont, by = c(ename, "zz000k")) |>
+      dplyr::left_join(coverr, by = c(ename, "zz000k")) |>
       dplyr::left_join(aggregated |>
                          dplyr::select(!!rlang::sym(ename),
                                        zz000l = zz000k,
@@ -81,7 +85,7 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
   return(aggregated)
 }
 
-covcont_group <- function(data, iname, tname, ename, k_min, k_max,
+coverr_group <- function(data, iname, tname, ename, k_min, k_max,
                           compute_varcov) {
 
   feasible_ek <- data |>
@@ -90,15 +94,15 @@ covcont_group <- function(data, iname, tname, ename, k_min, k_max,
     dplyr::arrange(!!rlang::sym(ename), zz000k)
 
   altepsilon <- purrr::map2(feasible_ek[[ename]], feasible_ek$zz000k,
-                            ~ altepsilon_ek(data, iname, tname, ename,
+                            ~ altepsilon_ek(data, iname, tname, ename, k_min,
                                             .x, .y)) |>
     dplyr::bind_rows()
 
   if (compute_varcov == "var") {
     return(altepsilon |>
-             dplyr::summarize(zz000varcont = weighted.var(zz000altepsilon,
-                                                          w = zz000w,
-                                                          na.rm = TRUE),
+             dplyr::summarize(zz000varerr = weighted.var(zz000altepsilon,
+                                                         w = zz000w,
+                                                         na.rm = TRUE),
                               .by = c(ename, "zz000k")))
   }
 
@@ -113,24 +117,24 @@ covcont_group <- function(data, iname, tname, ename, k_min, k_max,
                                      zz000l = zz000k,
                                      zz000altepsilon_l = zz000altepsilon),
                      by = c(iname, ename, "zz000l")) |>
-    dplyr::summarize(zz000covcont = weighted.cov(zz000altepsilon,
+    dplyr::summarize(zz000coverr = weighted.cov(zz000altepsilon,
                                                  zz000altepsilon_l,
                                                  w = zz000w,
                                                  na.rm = TRUE),
                      .by = c(ename, "zz000k", "zz000l"))
 }
 
-altepsilon_ek <- function(data, iname, tname, ename, e, k) {
+altepsilon_ek <- function(data, iname, tname, ename, k_min, e, k) {
 
   mean_epsilon <- data |>
-    dplyr::filter(!!rlang::sym(ename) > e + k,
+    dplyr::filter(!!rlang::sym(ename) + k_min > e + k,
                   !!rlang::sym(tname) < e + k) |>
     dplyr::summarize(mean_epsilon = stats::weighted.mean(zz000ytilde,
                                                          w = zz000w),
                      .by = !!rlang::sym(iname))
 
   data |>
-    dplyr::filter(!!rlang::sym(ename) > e + k,
+    dplyr::filter(!!rlang::sym(ename) + k_min > e + k,
                   !!rlang::sym(tname) == e + k) |>
     dplyr::left_join(mean_epsilon, by = c(iname)) |>
     dplyr::mutate(zz000altepsilon = zz000ytilde - mean_epsilon) |>

@@ -1,5 +1,16 @@
 # News
 
+## 0.0.6
+
+New Features:
+
+- Export `varraw`, `varerr`, `covraw`, and `coverr` for explicit variance and covariance adjustment
+- Simplify the argument in `unitdid` for new column names (`newnames`)
+
+Bug Fixes:
+
+- `varerr` and `coverr` is not correctly estimated when `k_min` is not 0
+
 ## 0.0.5
 
 New Features:

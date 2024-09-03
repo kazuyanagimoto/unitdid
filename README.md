@@ -84,14 +84,14 @@ event. Mainly for child penalties) levels:
 ``` r
 summary(mdl_base) # default agg = "full"
 #> # A tibble: 6 × 3
-#>      mean rel_time     n
-#>     <dbl>    <int> <dbl>
-#> 1 -0.0653        0  4357
-#> 2 -0.193         1  4357
-#> 3 -0.307         2  4357
-#> 4 -0.310         3  4357
-#> 5 -0.350         4  4357
-#> 6 -0.349         5  4357
+#>   rel_time    mean     n
+#>      <int>   <dbl> <dbl>
+#> 1        0 -0.0653  4357
+#> 2        1 -0.193   4357
+#> 3        2 -0.307   4357
+#> 4        3 -0.310   4357
+#> 5        4 -0.350   4357
+#> 6        5 -0.349   4357
 ```
 
 ``` r

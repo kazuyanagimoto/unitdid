@@ -12,16 +12,13 @@ unitdid(
   ename,
   first_stage = NULL,
   wname = NULL,
-  ytildename = NULL,
-  yvarname = NULL,
-  ycovname = NULL,
-  kprimename = "kprime",
   k_min = 0,
   k_max = 5,
   compute_varcov = "none",
   by = NULL,
   bname = NULL,
-  normalized = FALSE
+  normalized = FALSE,
+  newnames = NULL
 )
 }
 \arguments{
@@ -42,21 +39,6 @@ will be used.}
 
 \item{wname}{Optional. The name of the weight variable.}
 
-\item{ytildename}{Optional. The name of the imputed outcome variable.
-If not provided, the function will use \code{paste0(yname, "_tilde")}.}
-
-\item{yvarname}{Optional. The name of the unit-level variance of
-the outcome variable. If not provided, the function will use
-\code{paste0(yname, "_var")}.}
-
-\item{ycovname}{Optional. The name of the unit-level covariance of
-the outcome variable. If not provided, the function will use
-\code{paste0(yname, "_cov")}.}
-
-\item{kprimename}{Optional. The name of the relative time to treatment.
-This is used for the second column name of the relative time of
-the unit-level covariance estimation. Default is "kprime".}
-
 \item{k_min}{Relative time to treatment at which treatment starts.
 Default is 0.}
 
@@ -76,6 +58,27 @@ Necessary to aggregate the estimates by age at event.}
 
 \item{normalized}{Logical. If TRUE,
 the function will normalize the outcome variable scale. Default is FALSE.}
+
+\item{newnames}{Optional. A list of new names for the output variables.
+\code{ytildename} is the name of the imputed outcome variable.
+Default is \code{paste0(yname, "_tilde")}.
+\code{yvarname} is the name of the unit-level variance of the outcome variable.
+Default is \code{paste0(yname, "_var")}.
+\code{yvarrawname} is the name of the raw unit-level variance of
+the outcome variable, which is the variance before subtracting the
+variance of the measurement error. Default is \code{paste0(yname, "_varraw")}.
+\code{yvarerrname} is the name of the unit-level variance of the measurement error.
+Default is \code{paste0(yname, "_varerr")}.
+\code{ycovname} is the name of the unit-level covariance of the outcome variable.
+Default is \code{paste0(yname, "_cov")}.
+\code{ycovrawname} is the name of the raw unit-level covariance of
+the outcome variable, which is the covariance before subtracting the
+covariance of the measurement error. Default is \code{paste0(yname, "_covraw")}.
+\code{ycoverrname} is the name of the unit-level covariance of the measurement error.
+Default is \code{paste0(yname, "_coverr")}.
+\code{kprimename} is the name of the relative time to treatment.
+This is used for the second column name of the relative time of
+the unit-level covariance estimation. Default is "kprime".}
 }
 \value{
 A \code{unitdid} class object.

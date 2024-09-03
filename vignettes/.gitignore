@@ -2,3 +2,4 @@
 *.dta
 *.rds
 *.RData
+/.quarto/

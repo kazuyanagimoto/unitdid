@@ -21,10 +21,10 @@ Aggregate the mean and variance of the estimated unit-level DiD effects
 library(unitdid)
 mdl_base <- base_heterocp |>
   unitdid(yname = "y",
-        iname = "id",
-        tname = "year",
-        ename = "cyear",
-        bname = "byear")
+          iname = "id",
+          tname = "year",
+          ename = "cyear",
+          bname = "byear")
 summary(mdl_base, agg = "event_age")
 
 }
