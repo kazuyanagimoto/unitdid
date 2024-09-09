@@ -10,6 +10,7 @@ New Features:
 Bug Fixes:
 
 - `varerr` and `coverr` is not correctly estimated when `k_min` is not 0
+- Formula for `varerr` and `coverr` was incorrect (v0.0.6.1)
 
 ## 0.0.5
 

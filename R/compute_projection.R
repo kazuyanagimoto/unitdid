@@ -128,7 +128,7 @@ altepsilon_ek <- function(data, iname, tname, ename, k_min, e, k) {
 
   mean_epsilon <- data |>
     dplyr::filter(!!rlang::sym(ename) + k_min > e + k,
-                  !!rlang::sym(tname) < e + k) |>
+                  !!rlang::sym(tname) < e + k_min) |>
     dplyr::summarize(mean_epsilon = stats::weighted.mean(zz000ytilde,
                                                          w = zz000w),
                      .by = !!rlang::sym(iname))
