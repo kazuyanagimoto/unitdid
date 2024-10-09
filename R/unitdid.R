@@ -62,6 +62,8 @@ unitdid <- function(data,
                     normalized = FALSE,
                     newnames = NULL) {
 
+  zz000yhat = zz000w = . = NULL # CRAN Errors
+
   by_est <- c(by, bname) |> unique()
 
   # Check the input

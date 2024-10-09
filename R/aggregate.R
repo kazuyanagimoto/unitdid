@@ -39,6 +39,11 @@ aggregate_unitdid <- function(object,
                               allow_negative_var = FALSE,
                               only_full_horizon = FALSE) {
 
+  # CRAN Errors
+  zz000ytilde = zz000w = zz000k = zz000l = NULL
+  zz000var = zz000varraw = zz000varerr = NULL
+  zz000cov = zz000covraw = zz000coverr = NULL
+
   # Override the normalization option
   if (is.null(normalized)) {
     normalized <- object$info$normalized
@@ -81,7 +86,7 @@ aggregate_unitdid <- function(object,
 
   if (object$info$compute_varcov == "cov") {
     result <- df_unitdid |>
-      dplyr::summarize(across(c(zz000ytilde, zz000cov, zz000covraw, zz000coverr),
+      dplyr::summarize(dplyr::across(c(zz000ytilde, zz000cov, zz000covraw, zz000coverr),
                               ~stats::weighted.mean(.x, w = zz000w, na.rm = na.rm)),
                        zz000w = sum(zz000w),
                        .by = c(by, zz000l)) |>
@@ -90,7 +95,7 @@ aggregate_unitdid <- function(object,
       dplyr::arrange(!!!rlang::syms(by), zz000l)
   } else {
     result <- df_unitdid |>
-      dplyr::summarize(across(c(zz000ytilde, zz000var, zz000varraw, zz000varerr),
+      dplyr::summarize(dplyr::across(c(zz000ytilde, zz000var, zz000varraw, zz000varerr),
                               ~stats::weighted.mean(.x, w = zz000w, na.rm = na.rm)),
                        zz000var = pmax(zz000var, var_min),
                        zz000w = sum(zz000w),
@@ -152,6 +157,10 @@ aggregate_unitdid <- function(object,
 #'
 get_unitdid <- function(object, normalized = NULL, export = TRUE,
                         only_full_horizon = FALSE) {
+
+  # CRAN Errors
+  zz000k = zz000l = zz000ytilde = zz000cov = zz000covraw = zz000coverr = NULL
+  zz000yhat_agg = zz000yhat_agg_s = zz000var = zz000varraw = zz000varerr = NULL
 
   if (is.null(normalized)) {
     normalized <- object$info$normalized

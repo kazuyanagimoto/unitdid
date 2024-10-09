@@ -11,7 +11,7 @@ aggregate_unitdid(
   by = NULL,
   normalized = NULL,
   allow_negative_var = FALSE,
-  only_full_horizon = TRUE
+  only_full_horizon = FALSE
 )
 }
 \arguments{
@@ -46,7 +46,7 @@ the unit-level treatment effect, only the event year (\code{ename})
 with full horizon (\code{k_min:k_max}) will be included.
 This is recommended in the case that you do not want to change
 the composition of the event year (or age for the child penalties)
-for each estimated point in \code{k_min:k_max}. Default is TRUE.}
+for each estimated point in \code{k_min:k_max}. Default is FALSE.}
 }
 \value{
 A \code{tibble} with the aggregated mean and variance of

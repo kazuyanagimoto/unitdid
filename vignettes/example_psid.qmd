@@ -98,7 +98,8 @@ mdl_particip <- cp_psid |>
         by = c("gender"),
         compute_varcov = "var")
 
-sum_particip <- summary(mdl_particip, agg = "event_age") |>
+sum_particip <- summary(mdl_particip, agg = "event_age",
+                        only_full_horizon = TRUE) |>
   filter(between(event_age, 26, 32))
 
 df_plot <- sum_particip |>

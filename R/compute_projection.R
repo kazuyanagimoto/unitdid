@@ -1,5 +1,11 @@
 compute_projection <- function(object) {
 
+  # CRAN Errors
+  zz000ytilde = zz000k = zz000w = zz000mean = zz000varraw = zz000varerr = NULL
+  zz000ytilde_l = zz000mean_l = zz000covraw = zz000coverr = NULL
+  . = NULL
+
+  # Unit-Level Event Study
   object$aggregated <- object$data |>
     dplyr::group_by(!!!rlang::syms(object$info$by_est)) %>%
     dplyr::do(projection_group(., object$info$iname, object$info$tname,
@@ -8,7 +14,7 @@ compute_projection <- function(object) {
                                object$info$compute_varcov)) |>
     dplyr::ungroup()
 
-  # Individual Level Variance-Covariance
+  # Unit-Level Variance-Covariance
   object$data <- object$data |>
     dplyr::filter(dplyr::between(zz000k, object$info$k_min, object$info$k_max))
 
@@ -53,6 +59,9 @@ compute_projection <- function(object) {
 projection_group <- function(data, iname, tname, ename, k_min, k_max,
                              compute_varcov) {
 
+  zz000k = zz000ytilde = zz000w = zz000mean = NULL # CRAN Errors
+
+  # Aggregation for the normalization
   aggregated <- data |>
     dplyr::filter(dplyr::between(zz000k, k_min, k_max)) |>
     dplyr::summarize(zz000mean = stats::weighted.mean(zz000ytilde, w = zz000w),
@@ -66,13 +75,13 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
 
   if (compute_varcov == "var") {
     coverr <- coverr_group(data, iname, tname, ename, k_min, k_max,
-                            compute_varcov)
+                           compute_varcov)
     aggregated <- aggregated |>
       dplyr::left_join(coverr, by = c(ename, "zz000k"))
   }
   if (compute_varcov == "cov") {
     coverr <- coverr_group(data, iname, tname, ename, k_min, k_max,
-                             compute_varcov)
+                           compute_varcov)
     aggregated <- aggregated |>
       dplyr::left_join(coverr, by = c(ename, "zz000k")) |>
       dplyr::left_join(aggregated |>
@@ -86,7 +95,9 @@ projection_group <- function(data, iname, tname, ename, k_min, k_max,
 }
 
 coverr_group <- function(data, iname, tname, ename, k_min, k_max,
-                          compute_varcov) {
+                         compute_varcov) {
+
+  zz000k = zz000l = zz000altepsilon = zz000altepsilon_l = zz000w = NULL # CRAN Errors
 
   feasible_ek <- data |>
     dplyr::filter(dplyr::between(zz000k, k_min, k_max)) |>
@@ -125,6 +136,8 @@ coverr_group <- function(data, iname, tname, ename, k_min, k_max,
 }
 
 altepsilon_ek <- function(data, iname, tname, ename, k_min, e, k) {
+
+  zz000ytilde = zz000w = zz000altepsilon = NULL # CRAN Errors
 
   mean_epsilon <- data |>
     dplyr::filter(!!rlang::sym(ename) + k_min > e + k,

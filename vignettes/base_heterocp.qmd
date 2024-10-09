@@ -120,7 +120,7 @@ sim <- function() {
           bname = "byear",
           compute_varcov = "var")
 
-  summary(mdl_base, agg = "event_age")
+  summary(mdl_base, agg = "event_age", only_full_horizon = TRUE)
 }
 
 path_sim <- here::here("vignettes/simulated.rds")
@@ -211,12 +211,4 @@ df_plot |>
         panel.grid.major.x = element_blank(),
         legend.position = "bottom")
 ```
-
-
-
-
-
-
-
-
 

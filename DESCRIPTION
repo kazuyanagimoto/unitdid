@@ -34,4 +34,3 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://kazuyanagimoto.com/unitdid/, https://github.com/kazuyanagimoto/unitdid/
-VignetteBuilder: knitr
