@@ -1,7 +1,7 @@
 Type: Package
 Package: unitdid
 Title: Unit-level Difference-in-Difference Estimator
-Version: 0.0.6.1
+Version: 0.0.6.2
 Authors@R: 
     person(given = "Kazuharu",
            family = "Yanagimoto",
@@ -34,4 +34,3 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://kazuyanagimoto.com/unitdid/, https://github.com/kazuyanagimoto/unitdid/
-VignetteBuilder: knitr

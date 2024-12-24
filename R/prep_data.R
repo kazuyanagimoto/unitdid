@@ -1,9 +1,13 @@
 prep_data <- function(data, yname, iname, tname, first_stage, k_min) {
 
-  not_yet_treated <- data[data$zz000k < k_min, ]
+  # CRAN Errors
+  zz000ytilde = NULL
+
+  # Sample Selection
+  not_yet_treated <- data[data$zz000k < k_min & !is.na(data[[yname]]), ]
 
   if (nrow(not_yet_treated) == 0 ||
-        fixest:::cpp_isConstant(not_yet_treated[[yname]])) {
+        all(not_yet_treated[[yname]] == not_yet_treated[[yname]][1])) {
     return(data[FALSE, ])
   }
 
@@ -31,5 +35,5 @@ prep_data <- function(data, yname, iname, tname, first_stage, k_min) {
   data <- data |>
     dplyr::filter(!is.na(zz000ytilde))
 
-  return (data)
+  return(data)
 }

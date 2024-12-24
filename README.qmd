@@ -70,8 +70,11 @@ They can be aggregated to the `full`,
 summary(mdl_base) # default agg = "full"
 ```
 
+The `only_full_horizon` option restricts the summary to the units that have the full horizon (`k_min`, ... , `k_max`) for the estimates:
+
 ```{r agg_cage}
-sum_eage <- summary(mdl_base, agg = "event_age")
+sum_eage <- summary(mdl_base, agg = "event_age",
+                    only_full_horizon = TRUE)
 
 sum_eage |>
   filter(rel_time == 0) |>
@@ -112,7 +115,7 @@ mdl_base <- base_heterocp |>
         bname = "byear",
         compute_varcov = "var")
 
-sum_eage <- summary(mdl_base, agg = "event_age")
+sum_eage <- summary(mdl_base, agg = "event_age", only_full_horizon = TRUE)
 
 sum_eage |>
   filter(rel_time == 0) |>

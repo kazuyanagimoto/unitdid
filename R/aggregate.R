@@ -25,7 +25,7 @@
 #'   with full horizon (`k_min:k_max`) will be included.
 #'   This is recommended in the case that you do not want to change
 #'   the composition of the event year (or age for the child penalties)
-#'   for each estimated point in `k_min:k_max`. Default is TRUE.
+#'   for each estimated point in `k_min:k_max`. Default is FALSE.
 #'
 #' @return A `tibble` with the aggregated mean and variance of
 #'    the estimated unit-level DiD effects
@@ -37,7 +37,12 @@ aggregate_unitdid <- function(object,
                               by = NULL,
                               normalized = NULL,
                               allow_negative_var = FALSE,
-                              only_full_horizon = TRUE) {
+                              only_full_horizon = FALSE) {
+
+  # CRAN Errors
+  zz000ytilde = zz000w = zz000k = zz000l = NULL
+  zz000var = zz000varraw = zz000varerr = NULL
+  zz000cov = zz000covraw = zz000coverr = NULL
 
   # Override the normalization option
   if (is.null(normalized)) {
@@ -81,7 +86,7 @@ aggregate_unitdid <- function(object,
 
   if (object$info$compute_varcov == "cov") {
     result <- df_unitdid |>
-      dplyr::summarize(across(c(zz000ytilde, zz000cov, zz000covraw, zz000coverr),
+      dplyr::summarize(dplyr::across(c(zz000ytilde, zz000cov, zz000covraw, zz000coverr),
                               ~stats::weighted.mean(.x, w = zz000w, na.rm = na.rm)),
                        zz000w = sum(zz000w),
                        .by = c(by, zz000l)) |>
@@ -90,7 +95,7 @@ aggregate_unitdid <- function(object,
       dplyr::arrange(!!!rlang::syms(by), zz000l)
   } else {
     result <- df_unitdid |>
-      dplyr::summarize(across(c(zz000ytilde, zz000var, zz000varraw, zz000varerr),
+      dplyr::summarize(dplyr::across(c(zz000ytilde, zz000var, zz000varraw, zz000varerr),
                               ~stats::weighted.mean(.x, w = zz000w, na.rm = na.rm)),
                        zz000var = pmax(zz000var, var_min),
                        zz000w = sum(zz000w),
@@ -153,6 +158,10 @@ aggregate_unitdid <- function(object,
 get_unitdid <- function(object, normalized = NULL, export = TRUE,
                         only_full_horizon = FALSE) {
 
+  # CRAN Errors
+  zz000k = zz000l = zz000ytilde = zz000cov = zz000covraw = zz000coverr = NULL
+  zz000yhat_agg = zz000yhat_agg_s = zz000var = zz000varraw = zz000varerr = NULL
+
   if (is.null(normalized)) {
     normalized <- object$info$normalized
   }
@@ -189,15 +198,14 @@ get_unitdid <- function(object, normalized = NULL, export = TRUE,
 
   # Only full horizon
   if (only_full_horizon) {
-    feasible_ek <- object$aggregated |>
-      dplyr::summarize(zz000k_max = max(zz000k),
-                       .by = c(object$info$by_est, object$info$ename)) |>
-      dplyr::filter(zz000k_max == object$info$k_max) |>
-      dplyr::select(-zz000k_max)
 
-    object$data <- feasible_ek |>
-      dplyr::left_join(object$data,
-                       by = c(object$info$by_est, object$info$ename))
+    object$data <- object$data |>
+      dplyr::filter(dplyr::between(zz000k,
+                                   object$info$k_min, object$info$k_max)) |>
+      dplyr::group_by(!!rlang::sym(object$info$iname)) |>
+      dplyr::filter(dplyr::n_distinct(zz000k) == object$info$k_max - object$info$k_min + 1) |>
+      dplyr::ungroup()
+
   }
 
   # Export

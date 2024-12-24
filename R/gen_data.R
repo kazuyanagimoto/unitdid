@@ -9,7 +9,11 @@
 #' base_heterocp <- gen_heterocp()
 #'
 gen_heterocp <- function(size_cohort = 300) {
+  
+  # CRAN Errors
+  byear = cage = sd1 = year = cyear = rel_time = alpha = lambda = tau = epsilon = NULL
 
+  # Settings
   year_start <- 1999
   year_end <- 2021
   cage_start <- 15

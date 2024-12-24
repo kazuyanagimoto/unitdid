@@ -86,16 +86,20 @@ summary(mdl_base) # default agg = "full"
 #> # A tibble: 6 × 3
 #>   rel_time    mean     n
 #>      <int>   <dbl> <dbl>
-#> 1        0 -0.0653  4357
-#> 2        1 -0.193   4357
-#> 3        2 -0.307   4357
-#> 4        3 -0.310   4357
-#> 5        4 -0.350   4357
+#> 1        0 -0.0630  6332
+#> 2        1 -0.187   5987
+#> 3        2 -0.296   5593
+#> 4        3 -0.308   5214
+#> 5        4 -0.346   4774
 #> 6        5 -0.349   4357
 ```
 
+The `only_full_horizon` option restricts the summary to the units that
+have the full horizon (`k_min`, … , `k_max`) for the estimates:
+
 ``` r
-sum_eage <- summary(mdl_base, agg = "event_age")
+sum_eage <- summary(mdl_base, agg = "event_age",
+                    only_full_horizon = TRUE)
 
 sum_eage |>
   filter(rel_time == 0) |>
@@ -139,7 +143,7 @@ mdl_base <- base_heterocp |>
         bname = "byear",
         compute_varcov = "var")
 
-sum_eage <- summary(mdl_base, agg = "event_age")
+sum_eage <- summary(mdl_base, agg = "event_age", only_full_horizon = TRUE)
 
 sum_eage |>
   filter(rel_time == 0) |>
