@@ -16,3 +16,4 @@ _quarto/*
 _quarto/
 
 /.quarto/
+^_quarto$

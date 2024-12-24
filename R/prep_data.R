@@ -4,7 +4,7 @@ prep_data <- function(data, yname, iname, tname, first_stage, k_min) {
   zz000ytilde = NULL
 
   # Sample Selection
-  not_yet_treated <- data[data$zz000k < k_min, ]
+  not_yet_treated <- data[data$zz000k < k_min & !is.na(data[[yname]]), ]
 
   if (nrow(not_yet_treated) == 0 ||
         all(not_yet_treated[[yname]] == not_yet_treated[[yname]][1])) {
