@@ -13,7 +13,7 @@
 <!-- badges: end -->
 
 The `unitdid` package provides a set of functions for the analysis of
-the unit-level difference-in-differences ([Arkhangelsky, Yanagimoto, and
+the unit-level event studies (ULES) ([Arkhangelsky, Yanagimoto, and
 Zohar 2024](https://arxiv.org/abs/2403.19563)).
 
 ## Installation
@@ -35,7 +35,7 @@ library(dplyr)
 library(ggplot2)
 
 base_heterocp |>
-  head()
+    head()
 #> # A tibble: 6 × 5
 #>      id  year byear cyear      y
 #>   <int> <int> <int> <int>  <dbl>
@@ -47,17 +47,19 @@ base_heterocp |>
 #> 6     1  2004  1955  1985 -0.651
 ```
 
-Individual-level child penalties are estimated by `unitdid()`:
+ULES are estimated by `unitdid()`:
 
 ``` r
 mdl_base <- base_heterocp |>
-  unitdid(yname = "y",
+    unitdid(
+        yname = "y",
         iname = "id",
         tname = "year",
         ename = "cyear",
-        bname = "byear")
+        bname = "byear"
+    )
 
-# Estimated individual-level child penalties (y_tilde)
+# Estimated ULES (y_tilde)
 get_unitdid(mdl_base)
 #> # A tibble: 32,257 × 6
 #>       id  year byear cyear      y    y_tilde
@@ -75,7 +77,7 @@ get_unitdid(mdl_base)
 #> # ℹ 32,247 more rows
 ```
 
-### Aggregation of Individual-level Child Penalties
+### Aggregation
 
 They can be aggregated to the `full`, `event` (year at event
 (treatment). Mainly for staggered DiD design), `event_age` (age at
@@ -98,71 +100,71 @@ The `only_full_horizon` option restricts the summary to the units that
 have the full horizon (`k_min`, … , `k_max`) for the estimates:
 
 ``` r
-sum_eage <- summary(mdl_base, agg = "event_age",
-                    only_full_horizon = TRUE)
+sum_eage <- summary(mdl_base, agg = "event_age", only_full_horizon = TRUE)
 
 sum_eage |>
-  filter(rel_time == 0) |>
-  mutate(rel_time = -1,
-         mean = 0) |>
-  bind_rows(sum_eage) |>
-  filter(between(event_age, 25, 34)) |>
-  mutate(lbl_facet = paste0("Age ", event_age)) |>
-  ggplot(aes(x = rel_time, y = mean)) +
-  geom_point() +
-  geom_line() +
-  geom_vline(xintercept = -1, linetype = "dashed") +
-  geom_hline(yintercept = 0) +
-  facet_wrap(~lbl_facet, ncol = 5) +
-  labs(x = "Time to First Childbirth",
-       y = "Child Penalties on y") +
-  theme_minimal() +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank())
+    filter(rel_time == 0) |>
+    mutate(rel_time = -1, mean = 0) |>
+    bind_rows(sum_eage) |>
+    filter(between(event_age, 25, 34)) |>
+    mutate(lbl_facet = paste0("Age ", event_age)) |>
+    ggplot(aes(x = rel_time, y = mean)) +
+    geom_point() +
+    geom_line() +
+    geom_vline(xintercept = -1, linetype = "dashed") +
+    geom_hline(yintercept = 0) +
+    facet_wrap(~lbl_facet, ncol = 5) +
+    labs(x = "Relative Time to Event", y = "Aggregated ULES") +
+    theme_minimal() +
+    theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank()
+    )
 ```
 
 <img src="man/figures/README-agg_cage-1.svg" style="width:100.0%" />
 
-### Variance of Individual-level Child Penalties
+### Variance of ULES
 
-Since the individual-level child penalties are estimated with
-measurement errors, the variance of the `y_tilde` is not equal to the
-variance of the individual-level child penalties.
+Since the ULES are estimated with measurement errors, the variance of
+the `y_tilde` is not equal to the variance of the ULES.
 
 The `compute_varcov = "var"` option of the `unitdid` estimates the
-variance of the measurement errors and the variance of the
-individual-level child penalties by subtracting the variance of the
-measurement errors from the variance of `y_tilde`
+variance of the measurement errors and the variance of the ULES by
+subtracting the variance of the measurement errors from the variance of
+`y_tilde`
 
 ``` r
 mdl_base <- base_heterocp |>
-  unitdid(yname = "y",
+    unitdid(
+        yname = "y",
         iname = "id",
         tname = "year",
         ename = "cyear",
         bname = "byear",
-        compute_varcov = "var")
+        compute_varcov = "var"
+    )
 
 sum_eage <- summary(mdl_base, agg = "event_age", only_full_horizon = TRUE)
 
 sum_eage |>
-  filter(rel_time == 0) |>
-  mutate(rel_time = -1,
-         var = 0) |>
-  bind_rows(sum_eage) |>
-  filter(between(event_age, 25, 34)) |>
-  mutate(lbl_facet = paste0("Age ", event_age)) |>
-  ggplot(aes(x = rel_time, y = sqrt(var))) +
-  geom_point() +
-  geom_line() +
-  geom_vline(xintercept = -1, linetype = "dashed") +
-  geom_hline(yintercept = 0) +
-  facet_wrap(~lbl_facet, ncol = 5) +
-  labs(x = "Time to First Childbirth",
-       y = "S.D. of Child Penalties") +
-  theme_minimal() +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank())
+    filter(rel_time == 0) |>
+    mutate(rel_time = -1, var = 0) |>
+    bind_rows(sum_eage) |>
+    filter(between(event_age, 25, 34)) |>
+    mutate(lbl_facet = paste0("Age ", event_age)) |>
+    ggplot(aes(x = rel_time, y = sqrt(var))) +
+    geom_point() +
+    geom_line() +
+    geom_vline(xintercept = -1, linetype = "dashed") +
+    geom_hline(yintercept = 0) +
+    facet_wrap(~lbl_facet, ncol = 5) +
+    labs(x = "Relative Time to Event", y = "S.D. of ULES") +
+    theme_minimal() +
+    theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank()
+    )
 ```
 
 <img src="man/figures/README-var_cage-1.svg" style="width:100.0%" />

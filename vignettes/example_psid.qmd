@@ -1,18 +1,19 @@
 ---
-title: "Individual-level Child Penalties with PSID"
+title: "Unit-level Event Studies with PSID"
+subtitle: "Child Penalties on Participation"
 author: Kazuharu Yanagimoto
 date: today
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE,
-  message = FALSE,
-  dev = "svg",
-  fig.ext = "svg",
-  fig.cap = ""
+    collapse = TRUE,
+    comment = "#>",
+    warning = FALSE,
+    message = FALSE,
+    dev = "svg",
+    fig.ext = "svg",
+    fig.cap = ""
 )
 ```
 
@@ -54,26 +55,30 @@ cpf_us01 <- read_dta(here::here("vignettes/us_01.dta"))
 cpf_us03 <- read_dta(here::here("vignettes/us_03_CPF.dta"))
 
 ever_birth <- cpf_us01 |>
-  select(pid, cyear = ER32024) |>
-  filter(cyear != 9999) |>
-  distinct()
+    select(pid, cyear = ER32024) |>
+    filter(cyear != 9999) |>
+    distinct()
 
 cp_psid <- cpf_us03 |>
-  filter(country == 3) |>
-  select(id = pid,
-         year = intyear,
-         byear = yborn,
-         gender = female,
-         earn = incjobs_yg,
-         hours = whweek,
-         years_edu = eduy) |>
-  mutate(gender = if_else(gender == 0, "Men", "Women"),
-         particip = if_else(hours > 0, 1, 0),
-         wage = if_else(particip == 1, earn / hours, 0),
-         years_edu = if_else(years_edu < 0, NA_integer_, years_edu)) |>
-  right_join(ever_birth, by = c("id" = "pid")) |>
-  mutate(rel_time = year - cyear) |>
-  filter(!is.na(earn))
+    filter(country == 3) |>
+    select(
+        id = pid,
+        year = intyear,
+        byear = yborn,
+        gender = female,
+        earn = incjobs_yg,
+        hours = whweek,
+        years_edu = eduy
+    ) |>
+    mutate(
+        gender = if_else(gender == 0, "Men", "Women"),
+        particip = if_else(hours > 0, 1, 0),
+        wage = if_else(particip == 1, earn / hours, 0),
+        years_edu = if_else(years_edu < 0, NA_integer_, years_edu)
+    ) |>
+    right_join(ever_birth, by = c("id" = "pid")) |>
+    mutate(rel_time = year - cyear) |>
+    filter(!is.na(earn))
 
 save(cp_psid, file = here::here("vignettes/cp_psid.rds"))
 ```
@@ -84,30 +89,38 @@ save(cp_psid, file = here::here("vignettes/cp_psid.rds"))
 load(here::here("vignettes/cp_psid.rds"))
 
 cp_psid <- cp_psid |>
-  mutate(eage = cyear - byear) |>
-  filter(cyear >= 1968,
-         year <= 1997, # The last year of the annual data
-         between(eage, 22, 40))
+    mutate(eage = cyear - byear) |>
+    filter(
+        cyear >= 1968,
+        year <= 1997, # The last year of the annual data
+        between(eage, 22, 40)
+    )
 
 mdl_particip <- cp_psid |>
-  unitdid(yname = "particip",
+    unitdid(
+        yname = "particip",
         iname = "id",
         tname = "year",
         ename = "cyear",
         bname = "byear",
         by = c("gender"),
-        compute_varcov = "var")
+        compute_varcov = "var"
+    )
 
-sum_particip <- summary(mdl_particip, agg = "event_age",
-                        only_full_horizon = TRUE) |>
-  filter(between(event_age, 26, 32))
+sum_particip <- summary(mdl_particip,
+    agg = "event_age",
+    only_full_horizon = TRUE
+) |>
+    filter(between(event_age, 26, 32))
 
 df_plot <- sum_particip |>
-  filter(rel_time == 0) |>
-  mutate(rel_time = -1, mean = 0,
-         var = 0) |>
-  bind_rows(sum_particip) |>
-  mutate(lbl_facet = paste0("Age ", event_age))
+    filter(rel_time == 0) |>
+    mutate(
+        rel_time = -1, mean = 0,
+        var = 0
+    ) |>
+    bind_rows(sum_particip) |>
+    mutate(lbl_facet = paste0("Age ", event_age))
 ```
 
 ### Mean of Child Penalties on Participation
@@ -115,21 +128,27 @@ df_plot <- sum_particip |>
 ```{r mean_cage}
 #| code-fold: true
 df_plot |>
-  ggplot(aes(x = rel_time, y = mean,
-             color = gender, shape = gender)) +
-  geom_point() +
-  geom_line() +
-  geom_vline(xintercept = -1, linetype = "dashed") +
-  geom_hline(yintercept = 0) +
-  facet_wrap(~lbl_facet) +
-  scale_color_manual(values = c("#009F8C", "#B75C9D")) +
-  labs(x = "Time to First Childbirth",
-       y = NULL,
-       color = NULL, shape = NULL) +
-  theme_minimal() +
-  theme(panel.grid.minor = element_blank(),
+    ggplot(aes(
+        x = rel_time, y = mean,
+        color = gender, shape = gender
+    )) +
+    geom_point() +
+    geom_line() +
+    geom_vline(xintercept = -1, linetype = "dashed") +
+    geom_hline(yintercept = 0) +
+    facet_wrap(~lbl_facet) +
+    scale_color_manual(values = c("#009F8C", "#B75C9D")) +
+    labs(
+        x = "Time to First Childbirth",
+        y = NULL,
+        color = NULL, shape = NULL
+    ) +
+    theme_minimal() +
+    theme(
+        panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom"
+    )
 ```
 
 ### Standard Deviation of Child Penalties on Participation
@@ -137,20 +156,26 @@ df_plot |>
 ```{r sd_cage}
 #| code-fold: true
 df_plot |>
-  ggplot(aes(x = rel_time, y = sqrt(var),
-             color = gender, shape = gender)) +
-  geom_point() +
-  geom_line() +
-  geom_vline(xintercept = -1, linetype = "dashed") +
-  geom_hline(yintercept = 0) +
-  facet_wrap(~lbl_facet) +
-  scale_color_manual(values = c("#009F8C", "#B75C9D")) +
-  labs(x = "Time to First Childbirth",
-       y = NULL, color = NULL, shape = NULL) +
-  theme_minimal() +
-  theme(panel.grid.minor = element_blank(),
+    ggplot(aes(
+        x = rel_time, y = sqrt(var),
+        color = gender, shape = gender
+    )) +
+    geom_point() +
+    geom_line() +
+    geom_vline(xintercept = -1, linetype = "dashed") +
+    geom_hline(yintercept = 0) +
+    facet_wrap(~lbl_facet) +
+    scale_color_manual(values = c("#009F8C", "#B75C9D")) +
+    labs(
+        x = "Time to First Childbirth",
+        y = NULL, color = NULL, shape = NULL
+    ) +
+    theme_minimal() +
+    theme(
+        panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom"
+    )
 ```
 
 
@@ -168,20 +193,22 @@ unitdid_particip <- get_unitdid(mdl_particip)
 library(patchwork)
 
 plot_scatter <- function(gender) {
-  clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
+    clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
-  unitdid_particip |>
-    filter(gender == {{gender}}, between(rel_time, 0, 5)) |>
-    mutate(lbl_facet = paste0("k = ", rel_time)) |>
-    ggplot(aes(x = years_edu, y = particip_tilde)) +
-    geom_point(color = clr, alpha = 0.1) +
-    geom_smooth(method = "lm", color = clr, fill = clr) +
-    facet_wrap(~lbl_facet, nrow = 1) +
-    labs(x = "Years of Education",
-         y = "CP on Participation",
-         title = gender) +
-    coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +
-    theme_minimal()
+    unitdid_particip |>
+        filter(gender == {{ gender }}, between(rel_time, 0, 5)) |>
+        mutate(lbl_facet = paste0("k = ", rel_time)) |>
+        ggplot(aes(x = years_edu, y = particip_tilde)) +
+        geom_point(color = clr, alpha = 0.1) +
+        geom_smooth(method = "lm", color = clr, fill = clr) +
+        facet_wrap(~lbl_facet, nrow = 1) +
+        labs(
+            x = "Years of Education",
+            y = "CP on Participation",
+            title = gender
+        ) +
+        coord_cartesian(xlim = c(6, NA), ylim = c(-1.25, 0.5)) +
+        theme_minimal()
 }
 
 p1 <- plot_scatter("Men")
@@ -199,17 +226,21 @@ Another way to visualize the relationship is to use the binscatter [@cattaneo202
 library(binsreg)
 # Since I cannot hide plots in binsreg, I duplicate the code with `eval = FALSE`
 compute_binsreg <- function(gender) {
-  est <- unitdid_particip |>
-    filter(gender == {{ gender }}) |>
-    as.data.frame() |>
-    binsreg(x = years_edu, y = particip_tilde, data = _,
-            by = rel_time)
+    est <- unitdid_particip |>
+        filter(gender == {{ gender }}) |>
+        as.data.frame() |>
+        binsreg(
+            x = years_edu, y = particip_tilde, data = _,
+            by = rel_time
+        )
 
-  map(0:5, ~{est$data.plot[[paste0("Group ", .x)]]$data.dots |>
-               select(x, fit) |>
-               mutate(rel_time = .x)}) |>
-    list_rbind() |>
-    mutate(gender = gender)
+    map(0:5, ~ {
+        est$data.plot[[paste0("Group ", .x)]]$data.dots |>
+            select(x, fit) |>
+            mutate(rel_time = .x)
+    }) |>
+        list_rbind() |>
+        mutate(gender = gender)
 }
 
 bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
@@ -220,17 +251,21 @@ bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
 library(binsreg)
 
 compute_binsreg <- function(gender) {
-  est <- unitdid_particip |>
-    filter(gender == {{ gender }}) |>
-    as.data.frame() |>
-    binsreg(x = years_edu, y = particip_tilde,
-            data = _, by = rel_time)
+    est <- unitdid_particip |>
+        filter(gender == {{ gender }}) |>
+        as.data.frame() |>
+        binsreg(
+            x = years_edu, y = particip_tilde,
+            data = _, by = rel_time
+        )
 
-  map(0:5, ~{est$data.plot[[paste0("Group ", .x)]]$data.dots |>
-               select(x, fit) |>
-               mutate(rel_time = .x)}) |>
-    list_rbind() |>
-    mutate(gender = gender)
+    map(0:5, ~ {
+        est$data.plot[[paste0("Group ", .x)]]$data.dots |>
+            select(x, fit) |>
+            mutate(rel_time = .x)
+    }) |>
+        list_rbind() |>
+        mutate(gender = gender)
 }
 
 bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
@@ -239,18 +274,20 @@ bs <- map(c("Men", "Women"), compute_binsreg) |> list_rbind()
 ```{r}
 #| code-fold: true
 plot_binsreg <- function(gender) {
-  clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
+    clr <- ifelse(gender == "Men", "#009F8C", "#B75C9D")
 
-  bs |>
-    filter(gender == {{ gender }}) |>
-    mutate(lbl_facet = paste0("k = ", rel_time)) |>
-    ggplot(aes(x = x, y = fit)) +
-    geom_point(color = clr) +
-    facet_wrap(~lbl_facet, nrow = 1) +
-    labs(x = "Years of Education",
-         y = "CP on Participation",
-         title = gender) +
-    theme_minimal()
+    bs |>
+        filter(gender == {{ gender }}) |>
+        mutate(lbl_facet = paste0("k = ", rel_time)) |>
+        ggplot(aes(x = x, y = fit)) +
+        geom_point(color = clr) +
+        facet_wrap(~lbl_facet, nrow = 1) +
+        labs(
+            x = "Years of Education",
+            y = "CP on Participation",
+            title = gender
+        ) +
+        theme_minimal()
 }
 
 p1 <- plot_binsreg("Men")
